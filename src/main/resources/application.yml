@@ -1,0 +1,23 @@
+---
+spring:
+  application.name: ddd-java
+  aop.proxy-target-class: true
+  messages.basename: messages-validation, messages
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username:
+    password:
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate.ddl-auto: create-drop
+
+server.port: 8080
+
+error:
+  whitelabel.enabled: false
+  path: /error
+
+sample:
+  mail.enable: false
