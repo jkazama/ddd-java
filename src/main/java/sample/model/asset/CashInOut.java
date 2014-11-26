@@ -188,20 +188,21 @@ public class CashInOut extends JpaActiveRecord<CashInOut> {
 	public static CashInOut withdraw(final JpaRepository rep, final RegCashOut p) {
 		val dh = rep.dh();
 		val now = dh.time().tp();
+		// low: 発生日は締め時刻等の兼ね合いで営業日と異なるケースが多いため、別途DB管理される事が多い
+		val eventDay = now.getDay();
+		// low: 実際は各金融機関/通貨の休日を考慮しての T+N 算出が必要
+		val valueDay = dh.time().dayPlus(3);
+		
 		// 事前審査
 		val v = new Validator();
 		v.verifyField(0 < p.getAbsAmount().signum(), "absAmount", "error.domain.AbsAmount.zero");
-		boolean canWithdraw = Asset.by(p.getAccountId()).canWithdraw(rep, p.getCurrency(), p.getAbsAmount());
+		boolean canWithdraw = Asset.by(p.getAccountId()).canWithdraw(rep, p.getCurrency(), p.getAbsAmount(), valueDay);
 		v.verifyField(canWithdraw, "absAmount", "error.CashInOut.withdrawAmount");
 
 		// 出金依頼情報を登録
 		val uid = dh.uid().generate(CashInOut.class.getSimpleName());
 		val acc = FiAccount.load(rep, p.getAccountId(), Remarks.CashOut, p.getCurrency());
 		val selfAcc = SelfFiAccount.load(rep, Remarks.CashOut, p.getCurrency());
-		// low: 発生日は通常締め時刻等の兼ね合いで営業日と異なるケースが多いため、別途DB管理される事が多いです。
-		val eventDay = now.getDay();
-		// low: 実際は各金融機関/通貨の休日を考慮しての T+N 算出が必要
-		val valueDay = dh.time().dayPlus(3);
 		val updateActor = dh.actor().getId();
 		return p.create(now, uid, eventDay, valueDay, acc, selfAcc, updateActor).save(rep);
 	}

@@ -91,7 +91,9 @@ public class AssetAdminService extends ServiceSupport {
 	}
 
 	private void realizeCashflowInTx() {
-		for (val cf : Cashflow.findUnrealize(rep())) {
+		//low: 日回し後の実行を想定
+		String day = dh().time().day();
+		for (val cf : Cashflow.findDoRealize(rep(), day)) {
 			idLock().call(cf.getAccountId(), LockType.WRITE, new Callable<Object>() {
 				public Object call() throws Exception {
 					try {

@@ -27,7 +27,9 @@ import sample.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-@NamedQuery(name = "Cashflow.findUnrealize", query = "from Cashflow c where c.valueDay=?1 and c.statusType in ?2 order by c.id")
+@NamedQueries({
+	@NamedQuery(name = "Cashflow.findDoRealize", query = "from Cashflow c where c.valueDay=?1 and c.statusType in ?2 order by c.id"),
+	@NamedQuery(name = "Cashflow.findUnrealize", query = "from Cashflow c where c.valueDay<=?1 and c.statusType in ?2 order by c.id")})
 public class Cashflow extends JpaActiveRecord<Cashflow> {
 
 	private static final long serialVersionUID = 1L;
@@ -109,7 +111,7 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
 	 */
 	public boolean canRealize(final JpaRepository rep) {
 		val now = rep.dh().time().tp();
-		return now.equalsDay(valueDay) || now.afterDay(valueDay);
+		return now.afterEqualsDay(valueDay);
 	}
 
 	public static Cashflow load(final JpaRepository rep, Long id) {
@@ -117,11 +119,17 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
 	}
 	
 	/**
-	 * 当日未実現のキャッシュフロー一覧を検索します。
-	 * low: 過日系の考慮などは省略
+	 * 指定受渡日時点で未実現のキャッシュフロー一覧を検索します。
 	 */
-	public static List<Cashflow> findUnrealize(final JpaRepository rep) {
-		return rep.tmpl().find("Cashflow.findUnrealize", rep.dh().time().day(), ActionStatusType.unprocessedTypes);
+	public static List<Cashflow> findUnrealize(final JpaRepository rep, String valueDay) {
+		return rep.tmpl().find("Cashflow.findUnrealize", valueDay, ActionStatusType.unprocessedTypes);
+	}
+
+	/**
+	 * 指定受渡日で実現対象となるキャッシュフロー一覧を検索します。
+	 */
+	public static List<Cashflow> findDoRealize(final JpaRepository rep, String valueDay) {
+		return rep.tmpl().find("Cashflow.findDoRealize", valueDay, ActionStatusType.unprocessedTypes);
 	}
 	
 	/**

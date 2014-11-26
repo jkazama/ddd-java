@@ -28,10 +28,13 @@ public class Asset {
 
 	/**
 	 * 振込出金可能か判定します。
-	 * <p>0 <= 口座残高 - 出金依頼拘束額 - 出金額 
+	 * <p>0 <= 口座残高 + 未実現キャッシュフロー - (出金依頼拘束額 + 出金依頼額) 
 	 */
-	public boolean canWithdraw(final JpaRepository rep, String currency, BigDecimal absAmount) {
+	public boolean canWithdraw(final JpaRepository rep, String currency, BigDecimal absAmount, String valueDay) {
 		val calc = Calculator.init(CashBalance.getOrNew(rep, id, currency).getAmount());
+		for (val cf : Cashflow.findUnrealize(rep, valueDay)) {
+			calc.add(cf.getAmount());
+		}
 		for (val withdrawal : CashInOut.findUnprocessed(rep, id, currency, true)) {
 			calc.add(withdrawal.getAbsAmount().negate());
 		}
