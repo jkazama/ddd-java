@@ -5,35 +5,14 @@ import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 
-import javax.transaction.Transactional;
-
 import lombok.val;
 
 import org.junit.*;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 import sample.*;
-import sample.context.orm.JpaRepository;
-import sample.model.DataFixtures;
 
 //low: 簡易な正常系検証が中心。依存するCashBalanceの単体検証パスを前提。
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = Application.class)
-@WebAppConfiguration
-@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-@Transactional
-public class CashflowTest {
-
-	@Autowired
-	private JpaRepository rep;
-	@Autowired
-	private DataFixtures fixtures;
+public class CashflowTest extends UnitTestSupport {
 
 	@Test
 	public void register() {

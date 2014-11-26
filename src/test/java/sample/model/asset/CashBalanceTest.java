@@ -5,35 +5,14 @@ import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 
-import javax.transaction.Transactional;
-
 import lombok.val;
 
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.junit.Test;
 
-import sample.Application;
-import sample.context.orm.JpaRepository;
-import sample.model.DataFixtures;
+import sample.UnitTestSupport;
 
 //low: 簡易な正常系検証のみ
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = Application.class)
-@WebAppConfiguration
-@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-@Transactional
-public class CashBalanceTest {
-
-	@Autowired
-	private JpaRepository rep;
-	@Autowired
-	private DataFixtures fixtures;
+public class CashBalanceTest extends UnitTestSupport {
 
 	@Test
 	public void add() {

@@ -5,39 +5,18 @@ import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 
-import javax.transaction.Transactional;
-
 import lombok.val;
 
 import org.junit.*;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 import sample.*;
-import sample.context.orm.JpaRepository;
-import sample.model.DataFixtures;
 import sample.model.asset.CashInOut.FindCashInOut;
 import sample.model.asset.CashInOut.RegCashOut;
 import sample.model.asset.Cashflow.CashflowType;
 import sample.util.DateUtils;
 
 //low: 簡易な正常系検証が中心。依存するCashflow/CashBalanceの単体検証パスを前提。
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = Application.class)
-@WebAppConfiguration
-@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-@Transactional
-public class CashInOutTest {
-
-	@Autowired
-	private JpaRepository rep;
-	@Autowired
-	private DataFixtures fixtures;
+public class CashInOutTest extends UnitTestSupport {
 
 	private static final String ccy = "JPY";
 	private static final String accId = "test";
