@@ -56,7 +56,7 @@ public class ServiceMailDeliver {
 	/** 出金依頼受付メールを送信します。 */
 	public void sendWithdrawal(final CashInOut cio) {
 		send(cio.getAccountId(), new ServiceMailCreator() {
-			public SendMail create(Account account) {
+			public SendMail create(final Account account) {
 				// low: 実際のタイトルや本文はDBの設定情報から取得
 				val subject = "[" + cio.getId() + "] 出金依頼受付のお知らせ";
 				val body = "{name}様 …省略…";
@@ -69,7 +69,7 @@ public class ServiceMailDeliver {
 
 	/** メール送信情報の生成インターフェース */
 	public static interface ServiceMailCreator {
-		SendMail create(Account account);
+		SendMail create(final Account account);
 	}
 
 }

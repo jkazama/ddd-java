@@ -31,7 +31,7 @@ public class AssetController {
 	private AssetService service;
 
 	/** 未処理の振込依頼情報を検索します。 */
-	@RequestMapping(value="/cio/unprocessedOut")
+	@RequestMapping(value = "/cio/unprocessedOut")
 	public List<CashOutUI> findUnprocessedCashOut() {
 		List<CashOutUI> list = new ArrayList<>();
 		for (val cio : service.findUnprocessedCashOut()) {
@@ -39,14 +39,14 @@ public class AssetController {
 		}
 		return list;
 	}
-	
+
 	/**
 	 * 振込出金依頼をします。
-	 * low: 実際は状態を変えうる行為なのでPOSTですが、デモ用にGETで処理できるようにしています。
+	 * low: 実際は状態を変えうる行為なのでPOSTですが、デモ用にGETでも処理できるようにしています。
 	 * low: RestControllerの標準の振る舞いとしてプリミティブ型はJSON化されません。(解析時の優先順位の関係だと思いますが)
 	 * ちゃんとやりたい時はResponseEntityを戻り値として、DtoやMapを包むと良いと思います。
 	 */
-	@RequestMapping(value="/cio/withdraw", method=RequestMethod.GET)
+	@RequestMapping(value = "/cio/withdraw", method = { RequestMethod.POST, RequestMethod.GET })
 	public String withdraw(@Valid RegCashOut p) {
 		return service.withdraw(p);
 	}
