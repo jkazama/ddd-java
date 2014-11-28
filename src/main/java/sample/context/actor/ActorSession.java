@@ -14,7 +14,7 @@ public class ActorSession {
 	private ThreadLocal<Actor> actorLocal = new ThreadLocal<Actor>();
 
 	/** 利用者セッションへ利用者を紐付けます。 */
-	public ActorSession bind(Actor actor) {
+	public ActorSession bind(final Actor actor) {
 		actorLocal.set(actor);
 		return this;
 	}

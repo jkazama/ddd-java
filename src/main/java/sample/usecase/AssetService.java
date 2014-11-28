@@ -47,7 +47,7 @@ public class AssetService extends ServiceSupport {
 		return audit().audit("振込出金依頼をします", new Callable<String>() {
 			public String call() throws Exception {
 				p.setAccountId(actor().getId()); // 顧客側はログイン利用者で強制上書き
-				// low: 口座IDロック(WRITE)とトランザクションをかけて振替処理
+				// low: 口座IDロック(WRITE)とトランザクションをかけて振込処理
 				val cio = tx(actor().getId(), LockType.WRITE, new Callable<CashInOut>() {
 					public CashInOut call() throws Exception {
 						return CashInOut.withdraw(rep(), p);

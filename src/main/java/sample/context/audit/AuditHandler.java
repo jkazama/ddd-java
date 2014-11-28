@@ -29,7 +29,7 @@ public class AuditHandler {
 	private ActorSession session;
 	
 	/** 与えた処理に対し、監査ログを記録します。 */
-	public <T> T audit(String message, Callable<T> callable) {
+	public <T> T audit(String message, final Callable<T> callable) {
 		logger().trace(message(message, "[開始]", null));
 		long start = System.currentTimeMillis();
 		try {

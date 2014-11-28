@@ -20,7 +20,7 @@ import sample.InvocationException;
 @Component
 public class IdLockHandler {
 
-	private Map<Serializable, ReentrantReadWriteLock> lockMap = new HashMap<Serializable, ReentrantReadWriteLock>();
+	private Map<Serializable, ReentrantReadWriteLock> lockMap = new HashMap<>();
 
 	/** IDロック上で処理を実行します。 */
 	public <T> T call(Serializable id, LockType lockType, final Callable<T> callable) {

@@ -53,7 +53,7 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
 	 * 残高へ指定した金額を反映します。
 	 * low ここではCurrencyを使っていますが、実際の通貨桁数や端数処理定義はDBや設定ファイル等で管理されます。
 	 */
-	public CashBalance add(final JpaRepository rep, final BigDecimal addAmount) {
+	public CashBalance add(final JpaRepository rep, BigDecimal addAmount) {
 		val scale = java.util.Currency.getInstance(currency).getDefaultFractionDigits();
 		val mode = RoundingMode.DOWN;
 		setAmount(Calculator.init(amount).scale(scale, mode).add(addAmount).decimal());

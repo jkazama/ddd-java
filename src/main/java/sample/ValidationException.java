@@ -123,7 +123,6 @@ public class ValidationException extends RuntimeException {
 
 	/**
 	 * フィールドスコープの審査例外トークン。
-	 * low: 引数概念は記載量増やすので今回は省略
 	 */
 	@Value
 	public static class Warn {

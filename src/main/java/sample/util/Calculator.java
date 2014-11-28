@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class Calculator {
 
-	private final AtomicReference<BigDecimal> value = new AtomicReference<BigDecimal>();
+	private final AtomicReference<BigDecimal> value = new AtomicReference<>();
 	/** 小数点以下桁数 */
 	private int scale = 0;
 	/** 端数定義。標準では切り捨て */
@@ -21,7 +21,7 @@ public final class Calculator {
 	/** scale未設定時の除算scale値 */
 	private int defaultScale = 18;
 
-	private Calculator(final Number v) {
+	private Calculator(Number v) {
 		try {
 			this.value.set(new BigDecimal(v.toString()));
 		} catch (NumberFormatException e) {
@@ -29,7 +29,7 @@ public final class Calculator {
 		}
 	}
 
-	private Calculator(final BigDecimal v) {
+	private Calculator(BigDecimal v) {
 		this.value.set(v);
 	}
 
