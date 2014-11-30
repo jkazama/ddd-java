@@ -84,6 +84,7 @@ main
 - [Lombok](http://projectlombok.org/download.html)のパッチ当て(.jarを実行してインストーラの指示通りに実行)
 
 次の手順で本サンプルをプロジェクト化してください。
+※コンパイルエラーになる時は、Javaコンパイラの設定が1.7以上になっているかを確認してください。
 
 1. パッケージエクスプローラから「右クリック -> Import」で*Gradle Project*を選択して*Next*を押下
 1. *Root folder:*にダウンロードした*ddd-java*ディレクトリを指定して*Build Model*を押下

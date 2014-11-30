@@ -87,7 +87,7 @@ public final class Calculator {
 		return this;
 	}
 
-	protected BigDecimal rounding(BigDecimal v) {
+	private BigDecimal rounding(BigDecimal v) {
 		return roundingAlways ? v.setScale(scale, mode) : v;
 	}
 

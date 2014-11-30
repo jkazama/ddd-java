@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ActorSession {
 
-	private ThreadLocal<Actor> actorLocal = new ThreadLocal<Actor>();
+	private ThreadLocal<Actor> actorLocal = new ThreadLocal<>();
 
 	/** 利用者セッションへ利用者を紐付けます。 */
 	public ActorSession bind(final Actor actor) {

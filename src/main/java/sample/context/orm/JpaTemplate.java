@@ -76,7 +76,7 @@ public class JpaTemplate {
 	}
 
 	/**
-	 * SQL検索をします。
+	 * SQL実行をします。
 	 * @param sql SQL文字列
 	 * @param args SQLバインド引数
 	 * @return 実行件数

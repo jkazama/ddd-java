@@ -1,5 +1,6 @@
 package sample;
 
+import java.io.Serializable;
 import java.util.*;
 
 import lombok.Value;
@@ -46,7 +47,7 @@ public class ValidationException extends RuntimeException {
 		super(message);
 		warns = Warns.init(field, message, messageArgs);
 	}
-	
+
 	/**
 	 * 複数件の審査例外を通知するケースで利用してください。
 	 * @param warns
@@ -69,7 +70,8 @@ public class ValidationException extends RuntimeException {
 	}
 
 	/** 審査例外情報  */
-	public static class Warns {
+	public static class Warns implements Serializable {
+		private static final long serialVersionUID = 1L;
 		private List<Warn> list = new ArrayList<>();
 
 		private Warns() {
@@ -84,7 +86,7 @@ public class ValidationException extends RuntimeException {
 			list.add(new Warn(field, message, null));
 			return this;
 		}
-		
+
 		public Warns add(String field, String message, String[] messageArgs) {
 			list.add(new Warn(field, message, messageArgs));
 			return this;
@@ -114,7 +116,7 @@ public class ValidationException extends RuntimeException {
 		public static Warns init(String field, String message) {
 			return init().add(field, message);
 		}
-		
+
 		public static Warns init(String field, String message, String[] messageArgs) {
 			return init().add(field, message, messageArgs);
 		}
@@ -125,7 +127,8 @@ public class ValidationException extends RuntimeException {
 	 * フィールドスコープの審査例外トークン。
 	 */
 	@Value
-	public static class Warn {
+	public static class Warn implements Serializable {
+		private static final long serialVersionUID = 1L;
 		private String field;
 		private String message;
 		private String[] messageArgs;
