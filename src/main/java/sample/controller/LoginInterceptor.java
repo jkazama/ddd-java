@@ -35,7 +35,7 @@ public class LoginInterceptor {
 		session.bind(Actor.System);
 	}
 	
-	@After("execution(* sample.controller.system..*Controller.*(..))")
+	@After("execution(* sample.controller..*Controller.*(..))")
 	public void unbind() {
 		session.unbind();
 	}
