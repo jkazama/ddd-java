@@ -108,6 +108,7 @@ public class CashInOutTest extends UnitTestSupport {
 		today.save(rep);
 		try {
 			today.cancel(rep);
+			fail();
 		} catch (ValidationException e) {
 			assertThat(e.getMessage(), is("error.CashInOut.beforeEqualsDay"));
 		}
@@ -125,6 +126,7 @@ public class CashInOutTest extends UnitTestSupport {
 		today.save(rep);
 		try {
 			today.error(rep);
+			fail();
 		} catch (ValidationException e) {
 			assertThat(e.getMessage(), is("error.ActionStatusType.unprocessing"));
 		}
@@ -137,6 +139,7 @@ public class CashInOutTest extends UnitTestSupport {
 		val future = fixtures.cio(accId, "300", true).save(rep);
 		try {
 			future.process(rep);
+			fail();
 		} catch (ValidationException e) {
 			assertThat(e.getMessage(), is("error.CashInOut.afterEqualsDay"));
 		}

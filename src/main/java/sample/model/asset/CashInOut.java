@@ -129,7 +129,7 @@ public class CashInOut extends JpaActiveRecord<CashInOut> {
 		// 事前審査
 		val v = validator();
 		v.verify(statusType.isUnprocessing(), "error.ActionStatusType.unprocessing");
-		v.verify(now.beforeEqualsDay(eventDay), "error.CashInOut.beforeEqualsDay");
+		v.verify(now.beforeDay(eventDay), "error.CashInOut.beforeEqualsDay");
 		// 取消状態を反映
 		setStatusType(ActionStatusType.CANCELLED);
 		setUpdateActor(rep.dh().actor().getId());
