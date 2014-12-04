@@ -23,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.projectlombok:lombok:1.14.4"
+    compile "org.projectlombok:lombok:1.14.8"
     compile "org.springframework.boot:spring-boot-starter-web"
     compile "org.springframework.boot:spring-boot-starter-data-jpa"
     compile "org.springframework.boot:spring-boot-starter-aop"
@@ -32,5 +32,5 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = "2.0"
+  gradleVersion = "2.2"
 }
