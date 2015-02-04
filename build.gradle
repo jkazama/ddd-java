@@ -9,6 +9,7 @@ buildscript {
 
 apply plugin: "java"
 apply plugin: "spring-boot"
+apply plugin: "eclipse"
 
 version = "1.0.0"
 
@@ -20,6 +21,15 @@ repositories {
     mavenCentral()
     maven { url "http://repo.spring.io/libs-release" }
 }
+
+tasks.withType(JavaCompile){ options.encoding='UTF-8' }
+
+eclipseJdt << {
+    File f = file('.settings/org.eclipse.core.resources.prefs')
+    f.write('eclipse.preferences.version=1\n')
+    f.append('encoding/<project>=UTF-8')
+}
+
 
 dependencies {
     compile "org.projectlombok:lombok:1.14.8"
