@@ -80,13 +80,13 @@ main
 ※EclipseにSpringIDEプラグインを入れても可
 
 - JDK7以上のインストール
-- Gradleプラグインのインストール
 - [Lombok](http://projectlombok.org/download.html)のパッチ当て(.jarを実行してインストーラの指示通りに実行)
 
 次の手順で本サンプルをプロジェクト化してください。  
 ※コンパイルエラーになる時は、Javaコンパイラの設定が1.7以上になっているかを確認してください。
 
-1. パッケージエクスプローラから「右クリック -> Import」で*Gradle Project*を選択して*Next*を押下
+1. ```./gradlew eclipse```
+1. パッケージエクスプローラから「右クリック -> Import」で*Exsisting Project into Workspace*を選択して*Next*を押下
 1. *Root folder:*にダウンロードした*ddd-java*ディレクトリを指定して*Build Model*を押下
 1. *Project*で*ddd-java*を選択後、*Finish*を押下(依存ライブラリダウンロードがここで行われます)
 
@@ -139,4 +139,3 @@ STSまたはコンソールで8080ポートでサーバを立ち上げた後、�
 
 本サンプルのライセンスはコード含めて全て*MIT License*です。  
 SpringBootを用いたプロジェクトの立ち上げ時に実装サンプルとして利用してください。
-
