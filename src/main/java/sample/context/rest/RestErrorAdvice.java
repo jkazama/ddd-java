@@ -81,7 +81,11 @@ public class RestErrorAdvice {
 				}
 				args.add(arg.toString());
 			}
-			warns.add(field, oe.getDefaultMessage(), args.toArray(new String[0]));
+			String message = oe.getDefaultMessage();
+			if (0 <= oe.getCodes()[0].indexOf("typeMismatch")) {
+				message = oe.getCodes()[2];
+			}
+			warns.add(field, message, args.toArray(new String[0]));
 		}
 		return new ErrorHolder(msg, warns.list()).result(HttpStatus.BAD_REQUEST);
 	}
