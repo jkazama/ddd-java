@@ -58,9 +58,9 @@ public class ServiceMailDeliver {
 		send(cio.getAccountId(), new ServiceMailCreator() {
 			public SendMail create(final Account account) {
 				// low: 実際のタイトルや本文はDBの設定情報から取得
-				val subject = "[" + cio.getId() + "] 出金依頼受付のお知らせ";
-				val body = "{name}様 …省略…";
-				val bodyArgs = new HashMap<String, String>();
+				String subject = "[" + cio.getId() + "] 出金依頼受付のお知らせ";
+				String body = "{name}様 …省略…";
+				Map<String, String> bodyArgs = new HashMap<>();
 				bodyArgs.put("name", account.getName());
 				return new SendMail(account.getMail(), subject, body, bodyArgs);
 			}

@@ -4,11 +4,12 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 
 import lombok.*;
 import sample.ActionStatusType;
-import sample.context.Dto;
+import sample.context.*;
 import sample.context.orm.*;
 import sample.model.account.FiAccount;
 import sample.model.asset.Cashflow.CashflowType;
@@ -99,9 +100,9 @@ public class CashInOut extends JpaActiveRecord<CashInOut> {
 	 */
 	public CashInOut process(final JpaRepository rep) {
 		//low: 出金営業日の取得。ここでは単純な営業日を取得
-		val now = rep.dh().time().tp();
+		TimePoint now = rep.dh().time().tp();
 		// 事前審査
-		val v = validator();
+		Validator v = validator();
 		v.verify(statusType.isUnprocessed(), "error.ActionStatusType.unprocessing");
 		v.verify(now.afterEqualsDay(eventDay), "error.CashInOut.afterEqualsDay");
 		// 処理済状態を反映
@@ -113,10 +114,10 @@ public class CashInOut extends JpaActiveRecord<CashInOut> {
 	}
 
 	private RegCashflow regCf() {
-		val amount = withdrawal ? absAmount.negate() : absAmount;
-		val cashflowType = withdrawal ? CashflowType.CashOut : CashflowType.CashIn;
+		BigDecimal amount = withdrawal ? absAmount.negate() : absAmount;
+		CashflowType cashflowType = withdrawal ? CashflowType.CashOut : CashflowType.CashIn;
 		// low: 摘要はとりあえずシンプルに。実際はCashInOutへ用途フィールドをもたせた方が良い(生成元メソッドに応じて摘要を変える)
-		val remark = withdrawal ? Remarks.CashOut : Remarks.CashIn;
+		String remark = withdrawal ? Remarks.CashOut : Remarks.CashIn;
 		return new RegCashflow(accountId, currency, amount, cashflowType, remark, eventDay, valueDay);
 	}
 
@@ -125,9 +126,9 @@ public class CashInOut extends JpaActiveRecord<CashInOut> {
 	 * <p>"処理済みでない"かつ"発生日を迎えていない"必要があります。
 	 */
 	public CashInOut cancel(final JpaRepository rep) {
-		val now = rep.dh().time().tp();
+		TimePoint now = rep.dh().time().tp();
 		// 事前審査
-		val v = validator();
+		Validator v = validator();
 		v.verify(statusType.isUnprocessing(), "error.ActionStatusType.unprocessing");
 		v.verify(now.beforeDay(eventDay), "error.CashInOut.beforeEqualsDay");
 		// 取消状態を反映
@@ -159,7 +160,7 @@ public class CashInOut extends JpaActiveRecord<CashInOut> {
 	/** 未処理の振込入出金依頼一覧を検索します。  low: criteriaベース実装例 */
 	public static List<CashInOut> find(final JpaRepository rep, final FindCashInOut p) {
 		// low: 通常であれば事前にfrom/toの期間チェックを入れる
-		val criteria = rep.criteria(CashInOut.class);
+		JpaCriteria<CashInOut> criteria = rep.criteria(CashInOut.class);
 		criteria.equal("currency", p.getCurrency());
 		criteria.in("statusType", p.getStatusTypes());
 		criteria.between("updateDate", DateUtils.date(p.getUpdFromDay()),
@@ -186,24 +187,24 @@ public class CashInOut extends JpaActiveRecord<CashInOut> {
 
 	/** 出金依頼をします。 */
 	public static CashInOut withdraw(final JpaRepository rep, final RegCashOut p) {
-		val dh = rep.dh();
-		val now = dh.time().tp();
+		DomainHelper dh = rep.dh();
+		TimePoint now = dh.time().tp();
 		// low: 発生日は締め時刻等の兼ね合いで営業日と異なるケースが多いため、別途DB管理される事が多い
-		val eventDay = now.getDay();
+		String eventDay = now.getDay();
 		// low: 実際は各金融機関/通貨の休日を考慮しての T+N 算出が必要
-		val valueDay = dh.time().dayPlus(3);
+		String valueDay = dh.time().dayPlus(3);
 		
 		// 事前審査
-		val v = new Validator();
+		Validator v = new Validator();
 		v.verifyField(0 < p.getAbsAmount().signum(), "absAmount", "error.domain.AbsAmount.zero");
 		boolean canWithdraw = Asset.by(p.getAccountId()).canWithdraw(rep, p.getCurrency(), p.getAbsAmount(), valueDay);
 		v.verifyField(canWithdraw, "absAmount", "error.CashInOut.withdrawAmount");
 
 		// 出金依頼情報を登録
-		val uid = dh.uid().generate(CashInOut.class.getSimpleName());
-		val acc = FiAccount.load(rep, p.getAccountId(), Remarks.CashOut, p.getCurrency());
-		val selfAcc = SelfFiAccount.load(rep, Remarks.CashOut, p.getCurrency());
-		val updateActor = dh.actor().getId();
+		String uid = dh.uid().generate(CashInOut.class.getSimpleName());
+		FiAccount acc = FiAccount.load(rep, p.getAccountId(), Remarks.CashOut, p.getCurrency());
+		SelfFiAccount selfAcc = SelfFiAccount.load(rep, Remarks.CashOut, p.getCurrency());
+		String updateActor = dh.actor().getId();
 		return p.create(now, uid, eventDay, valueDay, acc, selfAcc, updateActor).save(rep);
 	}
 

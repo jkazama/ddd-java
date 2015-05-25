@@ -79,8 +79,8 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
 	 * キャッシュフローを処理済みにして残高へ反映します。
 	 */
 	public Cashflow realize(final JpaRepository rep) {
-		val now = rep.dh().time().tp();
-		val v = validator();
+		TimePoint now = rep.dh().time().tp();
+		Validator v = validator();
 		v.verify(canRealize(rep), "error.Cashflow.realizeDay");
 		v.verify(statusType.isUnprocessing(), "error.ActionStatusType.unprocessing"); // 「既に処理中/処理済です」
 
@@ -110,8 +110,7 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
 	 * キャッシュフローを実現(受渡)可能か判定します。
 	 */
 	public boolean canRealize(final JpaRepository rep) {
-		val now = rep.dh().time().tp();
-		return now.afterEqualsDay(valueDay);
+		return rep.dh().time().tp().afterEqualsDay(valueDay);
 	}
 
 	public static Cashflow load(final JpaRepository rep, Long id) {
@@ -137,12 +136,12 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
 	 * 受渡日を迎えていた時はそのまま残高へ反映します。
 	 */
 	public static Cashflow register(final JpaRepository rep, final RegCashflow p) {
-		val now = rep.dh().time().tp();
-		val v = new Validator();
+		TimePoint now = rep.dh().time().tp();
+		Validator v = new Validator();
 		v.checkField(now.beforeEqualsDay(p.getValueDay()),
 			"valueDay", "error.Cashflow.beforeEqualsDay");
 		v.verify();
-		val cf = p.create(now, rep.dh().actor().getId()).save(rep);
+		Cashflow cf = p.create(now, rep.dh().actor().getId()).save(rep);
 		return cf.canRealize(rep) ? cf.realize(rep) : cf;
 	}
 
@@ -181,7 +180,7 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
 		private String valueDay;
 
 		public Cashflow create(final TimePoint now, String updActor) {
-			val eventDate = eventDay == null ? now : new TimePoint(eventDay, now.getDate());
+			TimePoint eventDate = eventDay == null ? now : new TimePoint(eventDay, now.getDate());
 			return new Cashflow(null, accountId, currency, amount, cashflowType, remark, eventDate, valueDay,
 					ActionStatusType.UNPROCESSED, updActor, now.getDate());
 		}

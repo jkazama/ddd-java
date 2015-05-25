@@ -10,7 +10,7 @@ import lombok.*;
 import sample.context.orm.*;
 import sample.model.constraints.*;
 import sample.model.constraints.Currency;
-import sample.util.Calculator;
+import sample.util.*;
 
 /**
  * 口座残高を表現します。
@@ -54,8 +54,8 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
 	 * low ここではCurrencyを使っていますが、実際の通貨桁数や端数処理定義はDBや設定ファイル等で管理されます。
 	 */
 	public CashBalance add(final JpaRepository rep, BigDecimal addAmount) {
-		val scale = java.util.Currency.getInstance(currency).getDefaultFractionDigits();
-		val mode = RoundingMode.DOWN;
+		int scale = java.util.Currency.getInstance(currency).getDefaultFractionDigits();
+		RoundingMode mode = RoundingMode.DOWN;
 		setAmount(Calculator.init(amount).scale(scale, mode).add(addAmount).decimal());
 		return update(rep);
 	}
@@ -75,13 +75,13 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
 	}
 
 	private static CashBalance create(final JpaRepository rep, String accountId, String currency) {
-		val time = rep.dh().time();
+		TimePoint now= rep.dh().time().tp();
 		List<CashBalance> list = rep.tmpl().find("CashBalance.findAcc", accountId, currency);
 		if (list.isEmpty()) {
-			return new CashBalance(null, accountId, time.day(), currency, BigDecimal.ZERO, time.date()).save(rep);
+			return new CashBalance(null, accountId, now.getDay(), currency, BigDecimal.ZERO, now.getDate()).save(rep);
 		} else { // 残高繰越
 			CashBalance prev = list.get(0);
-			return new CashBalance(null, accountId, time.day(), currency, prev.getAmount(), time.date()).save(rep);
+			return new CashBalance(null, accountId, now.getDay(), currency, prev.getAmount(), now.getDate()).save(rep);
 		}
 	}
 

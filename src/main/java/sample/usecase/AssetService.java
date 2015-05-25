@@ -3,8 +3,6 @@ package sample.usecase;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import lombok.val;
-
 import org.springframework.stereotype.Service;
 
 import sample.context.lock.IdLockHandler.LockType;
@@ -48,7 +46,7 @@ public class AssetService extends ServiceSupport {
 			public String call() throws Exception {
 				p.setAccountId(actor().getId()); // 顧客側はログイン利用者で強制上書き
 				// low: 口座IDロック(WRITE)とトランザクションをかけて振込処理
-				val cio = tx(actor().getId(), LockType.WRITE, new Callable<CashInOut>() {
+				CashInOut cio = tx(actor().getId(), LockType.WRITE, new Callable<CashInOut>() {
 					public CashInOut call() throws Exception {
 						return CashInOut.withdraw(rep(), p);
 					}

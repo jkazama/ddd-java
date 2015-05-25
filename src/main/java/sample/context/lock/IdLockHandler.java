@@ -7,7 +7,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.stereotype.Component;
 
-import lombok.val;
 import sample.InvocationException;
 
 /**
@@ -71,7 +70,7 @@ public class IdLockHandler {
 		}
 
 		synchronized (lockMap) {
-			val idLock = idLock(id);
+			ReentrantReadWriteLock idLock = idLock(id);
 			if (idLock.isWriteLockedByCurrentThread()) {
 				idLock.writeLock().unlock();
 			} else {

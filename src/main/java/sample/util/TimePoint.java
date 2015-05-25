@@ -4,8 +4,8 @@ import java.util.Date;
 
 import javax.validation.constraints.NotNull;
 
-import sample.model.constraints.Day;
 import lombok.*;
+import sample.model.constraints.Day;
 
 /**
  * 日付と日時のペアを表現します。

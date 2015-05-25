@@ -3,9 +3,7 @@ package sample.model.account;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import lombok.val;
-
-import org.junit.Test;
+import org.junit.*;
 
 import sample.*;
 import sample.model.account.Account.AccountStatusType;
@@ -21,7 +19,7 @@ public class AccountTest extends UnitTestSupport {
 			hasProperty("statusType", is(AccountStatusType.NORMAL))));
 		
 		// 退会時取得検証
-		val withdrawal = fixtures.acc("withdrawal");
+		Account withdrawal = fixtures.acc("withdrawal");
 		withdrawal.setStatusType(AccountStatusType.WITHDRAWAL);
 		withdrawal.save(rep);
 		try {

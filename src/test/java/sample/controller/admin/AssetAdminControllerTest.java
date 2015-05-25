@@ -1,8 +1,8 @@
 package sample.controller.admin;
 
-import org.junit.*;
+import org.junit.Test;
 
-import sample.*;
+import sample.WebTestSupport;
 
 //low: 簡易な正常系検証が中心
 public class AssetAdminControllerTest extends WebTestSupport {
@@ -11,7 +11,6 @@ public class AssetAdminControllerTest extends WebTestSupport {
 	protected String prefix() {
 		return "/admin/asset";
 	}
-
 
 	@Test
 	public void findCashInOut() throws Exception {

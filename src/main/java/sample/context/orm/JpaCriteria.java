@@ -4,7 +4,7 @@ import java.util.*;
 
 import javax.persistence.criteria.*;
 
-import lombok.*;
+import lombok.Getter;
 import sample.context.Entity;
 
 /**
@@ -89,7 +89,7 @@ public class JpaCriteria<T extends Entity> {
 
 	/** 実行クエリを生成して返します。 */
 	public CriteriaQuery<T> result() {
-		val q = query.where(predicates.toArray(new Predicate[0]));
+		CriteriaQuery<T> q = query.where(predicates.toArray(new Predicate[0]));
 		return orders.isEmpty() ? q : q.orderBy(orders.toArray(new Order[0]));
 	}
 }

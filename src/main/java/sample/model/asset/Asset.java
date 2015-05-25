@@ -2,9 +2,9 @@ package sample.model.asset;
 
 import java.math.BigDecimal;
 
+import lombok.Getter;
 import sample.context.orm.JpaRepository;
 import sample.util.Calculator;
-import lombok.*;
 
 /**
  * 口座の資産概念を表現します。
@@ -32,11 +32,11 @@ public class Asset {
 	 * low: 判定のみなのでscale指定は省略。余力金額を返す時はきちんと指定する
 	 */
 	public boolean canWithdraw(final JpaRepository rep, String currency, BigDecimal absAmount, String valueDay) {
-		val calc = Calculator.init(CashBalance.getOrNew(rep, id, currency).getAmount());
-		for (val cf : Cashflow.findUnrealize(rep, valueDay)) {
+		Calculator calc = Calculator.init(CashBalance.getOrNew(rep, id, currency).getAmount());
+		for (Cashflow cf : Cashflow.findUnrealize(rep, valueDay)) {
 			calc.add(cf.getAmount());
 		}
-		for (val withdrawal : CashInOut.findUnprocessed(rep, id, currency, true)) {
+		for (CashInOut withdrawal : CashInOut.findUnprocessed(rep, id, currency, true)) {
 			calc.add(withdrawal.getAbsAmount().negate());
 		}
 		calc.add(absAmount.negate());

@@ -3,8 +3,6 @@ package sample.usecase;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import lombok.val;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +46,7 @@ public class AssetAdminService extends ServiceSupport {
 	private void closingCashOutInTx() {
 		//low: 以降の処理は口座単位でfilter束ねしてから実行する方が望ましい。
 		//low: 大量件数の処理が必要な時はそのままやるとヒープが死ぬため、idソートでページング分割して差分実行していく。
-		for (val cio : CashInOut.findUnprocessed(rep())) {
+		for (final CashInOut cio : CashInOut.findUnprocessed(rep())) {
 			//low: TX内のロックが適切に動くかはIdLockHandlerの実装次第。
 			// 調整が難しいようなら大人しく営業停止時間(IdLock必要な処理のみ非活性化されている状態)を作って、
 			// ロック無しで一気に処理してしまう方がシンプル。
@@ -93,7 +91,7 @@ public class AssetAdminService extends ServiceSupport {
 	private void realizeCashflowInTx() {
 		//low: 日回し後の実行を想定
 		String day = dh().time().day();
-		for (val cf : Cashflow.findDoRealize(rep(), day)) {
+		for (final Cashflow cf : Cashflow.findDoRealize(rep(), day)) {
 			idLock().call(cf.getAccountId(), LockType.WRITE, new Callable<Object>() {
 				public Object call() throws Exception {
 					try {

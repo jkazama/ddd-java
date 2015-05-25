@@ -3,22 +3,20 @@ package sample.context.rest;
 import java.util.*;
 
 import javax.persistence.EntityNotFoundException;
-import javax.validation.ConstraintViolationException;
-
-import lombok.val;
+import javax.validation.*;
 
 import org.apache.commons.logging.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.*;
 import org.springframework.http.*;
-import org.springframework.validation.BindException;
+import org.springframework.validation.*;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.*;
 
-import sample.*;
 import sample.ValidationException.Warn;
 import sample.ValidationException.Warns;
+import sample.ValidationException;
 
 /**
  * REST用の例外Map変換サポート。
@@ -55,8 +53,8 @@ public class RestErrorAdvice {
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ResponseEntity<Map<String, String[]>> handleConstraintViolation(ConstraintViolationException e) {
 		log.warn(e.getMessage());
-		val warns = Warns.init();
-		for (val v : e.getConstraintViolations()) {
+		Warns warns = Warns.init();
+		for (ConstraintViolation<?> v : e.getConstraintViolations()) {
 			warns.add(v.getPropertyPath().toString(), v.getMessage());
 		}
 		return new ErrorHolder(msg, warns.list()).result(HttpStatus.BAD_REQUEST);
@@ -65,8 +63,8 @@ public class RestErrorAdvice {
 	@ExceptionHandler(BindException.class)
 	public ResponseEntity<Map<String, String[]>> handleBind(BindException e) {
 		log.warn(e.getMessage());
-		val warns = Warns.init();
-		for (val oe : e.getAllErrors()) {
+		Warns warns = Warns.init();
+		for (ObjectError oe : e.getAllErrors()) {
 			String field = "";
 			if (1 == oe.getCodes().length) {
 				field = bindField(oe.getCodes()[0]);
@@ -74,8 +72,8 @@ public class RestErrorAdvice {
 				// low: プリフィックスは冗長なので外してます
 				field = bindField(oe.getCodes()[1]);
 			}
-			val args = new ArrayList<String>();
-			for (val arg : oe.getArguments()) {
+			List<String> args = new ArrayList<String>();
+			for (Object arg : oe.getArguments()) {
 				if (arg instanceof MessageSourceResolvable) {
 					continue;
 				}
@@ -125,7 +123,7 @@ public class RestErrorAdvice {
 
 		public ErrorHolder(final MessageSource msg, final List<Warn> warns) {
 			this.msg = msg;
-			for (val warn : warns) {
+			for (Warn warn : warns) {
 				if (warn.global()) {
 					errorGlobal(warn.getMessage());
 				} else {
@@ -161,7 +159,7 @@ public class RestErrorAdvice {
 
 		public ResponseEntity<Map<String, String[]>> result(HttpStatus status) {
 			Map<String, String[]> ret = new HashMap<String, String[]>();
-			for (val v : errors.entrySet()) {
+			for (Map.Entry<String, List<String>> v : errors.entrySet()) {
 				ret.put(v.getKey(), v.getValue().toArray(new String[0]));
 			}
 			return new ResponseEntity<Map<String, String[]>>(ret, status);

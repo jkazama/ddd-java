@@ -44,7 +44,7 @@ public class Account extends JpaActiveRecord<Account> {
 
 	/** 有効な口座を返します。 */
 	public static Account loadActive(final JpaRepository rep, String id) {
-		val acc = load(rep, id);
+		Account acc = load(rep, id);
 		if (acc.getStatusType().inacitve()) {
 			throw new ValidationException("error.Account.loadActive");
 		}

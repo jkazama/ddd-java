@@ -5,8 +5,6 @@ import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 
-import lombok.val;
-
 import org.junit.*;
 
 import sample.*;
@@ -32,7 +30,7 @@ public class CashInOutTest extends UnitTestSupport {
 	
 	@Test
 	public void find() {
-		val cio = fixtures.cio(accId, "300", true);
+		CashInOut cio = fixtures.cio(accId, "300", true);
 		cio.setUpdateDate(DateUtils.date("20141118"));
 		cio.save(rep);
 		//low: ちゃんとやると大変なので最低限の検証
@@ -74,7 +72,7 @@ public class CashInOutTest extends UnitTestSupport {
 		}
 
 		// 通常の出金依頼
-		val normal = CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("300")));
+		CashInOut normal = CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("300")));
 		assertThat(normal, allOf(
 			hasProperty("accountId", is(accId)), hasProperty("currency", is(ccy)),
 			hasProperty("absAmount", is(new BigDecimal(300))), hasProperty("withdrawal", is(true)),
@@ -99,11 +97,11 @@ public class CashInOutTest extends UnitTestSupport {
 	@Test
 	public void cancel() {
 		// CF未発生の依頼を取消
-		val normal = fixtures.cio(accId, "300", true).save(rep);
+		CashInOut normal = fixtures.cio(accId, "300", true).save(rep);
 		assertThat(normal.cancel(rep), hasProperty("statusType", is(ActionStatusType.CANCELLED)));
 		
 		// 発生日を迎えた場合は取消できない [例外]
-		val today = fixtures.cio(accId, "300", true);
+		CashInOut today = fixtures.cio(accId, "300", true);
 		today.setEventDay("20141118");
 		today.save(rep);
 		try {
@@ -116,11 +114,11 @@ public class CashInOutTest extends UnitTestSupport {
 
 	@Test
 	public void error() {
-		val normal = fixtures.cio(accId, "300", true).save(rep);
+		CashInOut normal = fixtures.cio(accId, "300", true).save(rep);
 		assertThat(normal.error(rep), hasProperty("statusType", is(ActionStatusType.ERROR)));
 		
 		// 処理済の時はエラーにできない [例外]
-		val today = fixtures.cio(accId, "300", true);
+		CashInOut today = fixtures.cio(accId, "300", true);
 		today.setEventDay("20141118");
 		today.setStatusType(ActionStatusType.PROCESSED);
 		today.save(rep);
@@ -136,7 +134,7 @@ public class CashInOutTest extends UnitTestSupport {
 	@SuppressWarnings("unchecked")
 	public void process() {
 		// 発生日未到来の処理 [例外]
-		val future = fixtures.cio(accId, "300", true).save(rep);
+		CashInOut future = fixtures.cio(accId, "300", true).save(rep);
 		try {
 			future.process(rep);
 			fail();
@@ -145,7 +143,7 @@ public class CashInOutTest extends UnitTestSupport {
 		}
 
 		// 発生日到来処理
-		val normal = fixtures.cio(accId, "300", true);
+		CashInOut normal = fixtures.cio(accId, "300", true);
 		normal.setEventDay("20141118");
 		normal.save(rep);
 		assertThat(normal.process(rep), allOf(

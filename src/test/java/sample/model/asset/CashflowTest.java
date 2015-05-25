@@ -5,8 +5,6 @@ import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 
-import lombok.val;
-
 import org.junit.*;
 
 import sample.*;
@@ -37,7 +35,7 @@ public class CashflowTest extends UnitTestSupport {
 		CashBalance.getOrNew(rep, "test1", "JPY");
 		
 		// 未到来の受渡日 [例外]
-		val cfFuture = fixtures.cf("test1", "1000", "20141118", "20141119").save(rep);
+		Cashflow cfFuture = fixtures.cf("test1", "1000", "20141118", "20141119").save(rep);
 		try {
 			cfFuture.realize(rep);
 			fail();
@@ -46,7 +44,7 @@ public class CashflowTest extends UnitTestSupport {
 		}
 		
 		// キャッシュフローの残高反映検証。  0 + 1000 = 1000
-		val cfNormal = fixtures.cf("test1", "1000", "20141117", "20141118").save(rep);
+		Cashflow cfNormal = fixtures.cf("test1", "1000", "20141117", "20141118").save(rep);
 		assertThat(cfNormal.realize(rep), hasProperty("statusType", is(ActionStatusType.PROCESSED)));
 		assertThat(CashBalance.getOrNew(rep, "test1", "JPY"),
 			hasProperty("amount", is(new BigDecimal("1000"))));
@@ -60,7 +58,7 @@ public class CashflowTest extends UnitTestSupport {
 		}
 		
 		// 過日キャッシュフローの残高反映検証。 1000 + 2000 = 3000
-		val cfPast = fixtures.cf("test1", "2000", "20141116", "20141117").save(rep);
+		Cashflow cfPast = fixtures.cf("test1", "2000", "20141116", "20141117").save(rep);
 		assertThat(cfPast.realize(rep), hasProperty("statusType", is(ActionStatusType.PROCESSED)));
 		assertThat(CashBalance.getOrNew(rep, "test1", "JPY"),
 			hasProperty("amount", is(new BigDecimal("3000"))));

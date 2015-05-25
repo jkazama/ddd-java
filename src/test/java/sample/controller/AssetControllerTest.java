@@ -1,8 +1,8 @@
 package sample.controller;
 
-import org.junit.*;
+import org.junit.Test;
 
-import sample.*;
+import sample.WebTestSupport;
 
 //low: 簡易な正常系検証が中心
 public class AssetControllerTest extends WebTestSupport {

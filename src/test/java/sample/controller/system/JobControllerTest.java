@@ -5,8 +5,6 @@ import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 
-import lombok.val;
-
 import org.junit.*;
 
 import sample.*;
@@ -34,7 +32,7 @@ public class JobControllerTest extends WebTestSupport {
 	@Test
 	public void closingCashOut() throws Exception {
 		// 当日発生の振込出金依頼を準備
-		val co = fixtures.cio("sample", "3000", true);
+		CashInOut co = fixtures.cio("sample", "3000", true);
 		co.setEventDay(time.day());
 		co.save(rep);
 		assertThat(CashInOut.load(rep, co.getId()), hasProperty("statusType", is(ActionStatusType.UNPROCESSED)));
@@ -46,7 +44,7 @@ public class JobControllerTest extends WebTestSupport {
 	@Test
 	public void realizeCashflow() throws Exception {
 		// 当日実現のキャッシュフローを準備
-		val cf = fixtures.cf("sample", "3000", "20141117", "20141118").save(rep);
+		Cashflow cf = fixtures.cf("sample", "3000", "20141117", "20141118").save(rep);
 		assertThat(Cashflow.load(rep, cf.getId()), hasProperty("statusType", is(ActionStatusType.UNPROCESSED)));
 		assertThat(CashBalance.getOrNew(rep, "sample", "JPY"),
 				hasProperty("amount", is(new BigDecimal("1000000.0000"))));

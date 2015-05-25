@@ -2,14 +2,14 @@ package sample.context.audit;
 
 import java.util.concurrent.Callable;
 
-import lombok.*;
+import lombok.Setter;
 
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import sample.*;
-import sample.context.actor.ActorSession;
+import sample.context.actor.*;
 
 /**
  * 利用者監査やシステム監査(定時バッチや日次バッチ等)などを取り扱います。
@@ -33,7 +33,7 @@ public class AuditHandler {
 		logger().trace(message(message, "[開始]", null));
 		long start = System.currentTimeMillis();
 		try {
-			val v = callable.call();
+			T v = callable.call();
 			logger().info(message(message, "[完了]", start));
 			return v;
 		} catch (ValidationException e) {
@@ -53,8 +53,8 @@ public class AuditHandler {
 	}
 	
 	private String message(String message, String prefix, Long startMillis) {
-		val actor = session.actor();
-		val sb = new StringBuilder(prefix + " ");
+		Actor actor = session.actor();
+		StringBuilder sb = new StringBuilder(prefix + " ");
 		if (actor.getRoleType().isAnonymous()) {
 			sb.append("[" + actor.getSource() + "] ");
 		} else if (actor.getRoleType().notSystem()) {

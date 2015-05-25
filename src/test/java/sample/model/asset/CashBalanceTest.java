@@ -1,11 +1,9 @@
 package sample.model.asset;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import java.math.BigDecimal;
-
-import lombok.val;
 
 import org.junit.Test;
 
@@ -16,7 +14,7 @@ public class CashBalanceTest extends UnitTestSupport {
 
 	@Test
 	public void add() {
-		val cb = fixtures.cb("test1", "20141118", "USD", "10.02").save(rep);
+		CashBalance cb = fixtures.cb("test1", "20141118", "USD", "10.02").save(rep);
 
 		// 10.02 + 11.51 = 21.53
 		assertThat(cb.add(rep, new BigDecimal("11.51")).getAmount(), is(new BigDecimal("21.53")));
@@ -34,21 +32,21 @@ public class CashBalanceTest extends UnitTestSupport {
 		fixtures.cb("test2", "20141117", "JPY", "3000").save(rep);
 
 		// 存在している残高の検証
-		val cbNormal = CashBalance.getOrNew(rep, "test1", "JPY");
+		CashBalance cbNormal = CashBalance.getOrNew(rep, "test1", "JPY");
 		assertThat(cbNormal, allOf(
 			hasProperty("accountId", is("test1")),
 			hasProperty("baseDay", is("20141118")),
 			hasProperty("amount", is(new BigDecimal("1000")))));
 
 		// 基準日に存在していない残高の繰越検証
-		val cbRoll = CashBalance.getOrNew(rep, "test2", "JPY");
+		CashBalance cbRoll = CashBalance.getOrNew(rep, "test2", "JPY");
 		assertThat(cbRoll, allOf(
 			hasProperty("accountId", is("test2")),
 			hasProperty("baseDay", is("20141118")),
 			hasProperty("amount", is(new BigDecimal("3000")))));
 
 		// 残高を保有しない口座の生成検証
-		val cbNew = CashBalance.getOrNew(rep, "test3", "JPY");
+		CashBalance cbNew = CashBalance.getOrNew(rep, "test3", "JPY");
 		assertThat(cbNew, allOf(
 			hasProperty("accountId", is("test3")),
 			hasProperty("baseDay", is("20141118")),

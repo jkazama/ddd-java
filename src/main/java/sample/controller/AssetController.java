@@ -34,7 +34,7 @@ public class AssetController {
 	@RequestMapping(value = "/cio/unprocessedOut")
 	public List<CashOutUI> findUnprocessedCashOut() {
 		List<CashOutUI> list = new ArrayList<>();
-		for (val cio : service.findUnprocessedCashOut()) {
+		for (CashInOut cio : service.findUnprocessedCashOut()) {
 			list.add(CashOutUI.by(cio));
 		}
 		return list;
