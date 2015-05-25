@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.1.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.3.RELEASE"
     }
 }
 
@@ -32,7 +32,7 @@ eclipseJdt << {
 
 
 dependencies {
-    compile "org.projectlombok:lombok:1.14.8"
+    compile "org.projectlombok:lombok:1.16.4"
     compile "org.springframework.boot:spring-boot-starter-web"
     compile "org.springframework.boot:spring-boot-starter-data-jpa"
     compile "org.springframework.boot:spring-boot-starter-aop"
@@ -41,5 +41,5 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = "2.2"
+  gradleVersion = "2.4"
 }
