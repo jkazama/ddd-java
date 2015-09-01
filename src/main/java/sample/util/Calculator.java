@@ -83,7 +83,7 @@ public final class Calculator {
 	 * @return 自身のインスタンス
 	 */
 	public Calculator add(BigDecimal v) {
-		value.set(rounding(decimal().add(v)));
+		value.set(rounding(value.get().add(v)));
 		return this;
 	}
 
@@ -110,8 +110,7 @@ public final class Calculator {
 	 * @return 自身のインスタンス
 	 */
 	public Calculator subtract(BigDecimal v) {
-		BigDecimal ret = roundingAlways ? decimal().subtract(v).setScale(scale, mode) : decimal().subtract(v);
-		value.set(ret);
+		value.set(rounding(value.get().subtract(v)));
 		return this;
 	}
 
@@ -134,8 +133,7 @@ public final class Calculator {
 	 * @return 自身のインスタンス
 	 */
 	public Calculator multiply(BigDecimal v) {
-		BigDecimal ret = roundingAlways ? decimal().multiply(v).setScale(scale, mode) : decimal().multiply(v);
-		value.set(ret);
+		value.set(rounding(value.get().multiply(v)));
 		return this;
 	}
 
@@ -158,7 +156,7 @@ public final class Calculator {
 	 * @return 自身のインスタンス
 	 */
 	public Calculator divideBy(BigDecimal v) {
-		BigDecimal ret = roundingAlways ? decimal().divide(v, scale, mode) : decimal().divide(v, defaultScale, mode);
+		BigDecimal ret = roundingAlways ? value.get().divide(v, scale, mode) : value.get().divide(v, defaultScale, mode);
 		value.set(ret);
 		return this;
 	}
