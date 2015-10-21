@@ -10,6 +10,9 @@ JSUG(日本Springユーザ会)の下記勉強会向けのサンプル実装で�
 本サンプルでは[SpringBoot](http://projects.spring.io/spring-boot/)と[Lombok](http://projectlombok.org/)を利用してドメインモデリングの実装例を示します。実際に2007年くらいから現在に至るまで現場で利用されている実装アプローチなので、参考例の一つとしてみてもらえればと思います。  
 ※JavaDocに記載をしていますが、サンプルに特化させているので実際の製品コードが含まれているわけではありません。
 
+認証含む、より実践的な実装サンプルについては[sample-boot-hibernate](https://github.com/jkazama/sample-boot-hibernate)を参照してください。  
+またUI側の実装サンプルについては[sample-ui-vue](https://github.com/jkazama/sample-ui-vue) / [sample-ui-react](https://github.com/jkazama/sample-ui-react)を参照してください。
+
 ### レイヤリングの考え方
 
 オーソドックスな三層モデルですが、横断的な解釈としてインフラ層を考えます。
