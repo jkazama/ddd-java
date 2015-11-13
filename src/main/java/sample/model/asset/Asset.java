@@ -33,7 +33,7 @@ public class Asset {
 	 */
 	public boolean canWithdraw(final JpaRepository rep, String currency, BigDecimal absAmount, String valueDay) {
 		Calculator calc = Calculator.init(CashBalance.getOrNew(rep, id, currency).getAmount());
-		for (Cashflow cf : Cashflow.findUnrealize(rep, valueDay)) {
+		for (Cashflow cf : Cashflow.findUnrealize(rep, id, currency, valueDay)) {
 			calc.add(cf.getAmount());
 		}
 		for (CashInOut withdrawal : CashInOut.findUnprocessed(rep, id, currency, true)) {

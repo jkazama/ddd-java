@@ -29,7 +29,7 @@ import sample.util.*;
 @EqualsAndHashCode(callSuper = false)
 @NamedQueries({
 	@NamedQuery(name = "Cashflow.findDoRealize", query = "from Cashflow c where c.valueDay=?1 and c.statusType in ?2 order by c.id"),
-	@NamedQuery(name = "Cashflow.findUnrealize", query = "from Cashflow c where c.valueDay<=?1 and c.statusType in ?2 order by c.id")})
+	@NamedQuery(name = "Cashflow.findUnrealize", query = "from Cashflow c where c.accountId=?1 and c.currency=?2 and c.valueDay<=?3 and c.statusType in ?4 order by c.id")})
 public class Cashflow extends JpaActiveRecord<Cashflow> {
 
 	private static final long serialVersionUID = 1L;
@@ -118,10 +118,10 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
 	}
 	
 	/**
-	 * 指定受渡日時点で未実現のキャッシュフロー一覧を検索します。
+	 * 指定受渡日時点で未実現のキャッシュフロー一覧を検索します。(口座通貨別)
 	 */
-	public static List<Cashflow> findUnrealize(final JpaRepository rep, String valueDay) {
-		return rep.tmpl().find("Cashflow.findUnrealize", valueDay, ActionStatusType.unprocessedTypes);
+	public static List<Cashflow> findUnrealize(final JpaRepository rep,  String accountId, String currency, String valueDay) {
+		return rep.tmpl().find("Cashflow.findUnrealize", accountId, currency, valueDay, ActionStatusType.unprocessedTypes);
 	}
 
 	/**
