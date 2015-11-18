@@ -21,6 +21,7 @@ import sample.model.asset.CashInOut.FindCashInOut;
  */
 @Component
 @Setter
+@SuppressWarnings("unused")
 public class ServiceReportExporter {
 	
 	@Autowired

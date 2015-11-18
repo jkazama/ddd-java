@@ -26,6 +26,7 @@ import sample.model.asset.CashInOut;
  */
 @Component
 @Setter
+@SuppressWarnings("unused")
 public class ServiceMailDeliver {
 
 	@Autowired

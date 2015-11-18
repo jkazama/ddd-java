@@ -1,13 +1,10 @@
 package sample;
 
-import javax.validation.Validator;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.*;
-import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 /**
  * アプリケーションにおけるBean定義を表現します。
@@ -18,27 +15,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Configuration
 public class ApplicationConfig {
 
-	/**
-	 * BeanValidationメッセージのUTF-8に対応したValidator。
-	 * <p>WebMvcAutoConfigurationAdapterの拡張もあわせて確認してください。
-	 */
-	@Bean
-	public Validator validator(MessageSource message) {
-		LocalValidatorFactoryBean factory = new LocalValidatorFactoryBean();
-		factory.setValidationMessageSource(message);
-		return factory;
-	}
-
-	/**
-	 * Jackson(JSON変換ライブラリ)の日付フォーマットをISOベースに変換しています。
-	 */
-	@Bean
-	public ObjectMapper objectMapper() {
-		Jackson2ObjectMapperFactoryBean bean = new Jackson2ObjectMapperFactoryBean();
-		bean.setIndentOutput(true);
-		bean.setSimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-		bean.afterPropertiesSet();
-		return bean.getObject();
+	/** SpringMvcの拡張コンフィギュレーション */
+	@Configuration
+	public static class WebMvcConfig extends WebMvcConfigurerAdapter {
+		@Autowired
+		private MessageSource message;
+        
+		/** BeanValidationメッセージのUTF-8に対応したValidator。 */
+		@Bean
+		public LocalValidatorFactoryBean validator() {
+			LocalValidatorFactoryBean factory = new LocalValidatorFactoryBean();
+			factory.setValidationMessageSource(message);
+			return factory;
+		}
+		
+		/** 標準Validatorの差し替えをします。 */
+		@Override
+		public org.springframework.validation.Validator getValidator() {
+			return validator();
+		}
 	}
 
 }
