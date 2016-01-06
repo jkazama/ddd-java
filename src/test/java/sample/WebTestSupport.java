@@ -12,28 +12,28 @@ import org.springframework.web.context.WebApplicationContext;
 
 public abstract class WebTestSupport extends UnitTestSupport {
 
-	protected static final Logger logger = LoggerFactory.getLogger("ControllerTest");
+    protected static final Logger logger = LoggerFactory.getLogger("ControllerTest");
 
-	@Autowired
-	protected WebApplicationContext wac;
+    @Autowired
+    protected WebApplicationContext wac;
 
-	protected MockMvc mockMvc;
+    protected MockMvc mockMvc;
 
-	@Before
-	public void before() {
-		mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
-	}
+    @Before
+    public void before() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+    }
 
-	protected String url(String path) {
-		return prefix() + path;
-	}
+    protected String url(String path) {
+        return prefix() + path;
+    }
 
-	protected String prefix() {
-		return "/";
-	}
-	
-	protected MvcResult performGet(String path) throws Exception {
-		return mockMvc.perform(get(url(path))).andExpect(status().isOk()).andReturn();
-	}
-	
+    protected String prefix() {
+        return "/";
+    }
+
+    protected MvcResult performGet(String path) throws Exception {
+        return mockMvc.perform(get(url(path))).andExpect(status().isOk()).andReturn();
+    }
+
 }

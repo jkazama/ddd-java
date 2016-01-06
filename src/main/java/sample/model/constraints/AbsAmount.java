@@ -22,22 +22,22 @@ import javax.validation.constraints.*;
 @Digits(integer = 16, fraction = 4)
 @DecimalMin("0.00")
 public @interface AbsAmount {
-	String message() default "{error.domain.absAmount}";
+    String message() default "{error.domain.absAmount}";
 
-	Class<?>[] groups() default {};
+    Class<?>[] groups() default {};
 
-	Class<? extends Payload>[] payload() default {};
+    Class<? extends Payload>[] payload() default {};
 
-	@OverridesAttribute(constraint = Digits.class, name = "integer")
-	int integer() default 16;
+    @OverridesAttribute(constraint = Digits.class, name = "integer")
+    int integer() default 16;
 
-	@OverridesAttribute(constraint = Digits.class, name = "fraction")
-	int fraction() default 4;
+    @OverridesAttribute(constraint = Digits.class, name = "fraction")
+    int fraction() default 4;
 
-	@Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
-	@Retention(RUNTIME)
-	@Documented
-	public @interface List {
-		AbsAmount[] value();
-	}
+    @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
+    @Retention(RUNTIME)
+    @Documented
+    public @interface List {
+        AbsAmount[] value();
+    }
 }

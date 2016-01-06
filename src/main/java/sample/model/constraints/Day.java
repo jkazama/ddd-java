@@ -23,22 +23,22 @@ import javax.validation.constraints.*;
 @Size
 @Pattern(regexp = "")
 public @interface Day {
-	String message() default "{error.domain.day}";
+    String message() default "{error.domain.day}";
 
-	Class<?>[] groups() default {};
+    Class<?>[] groups() default {};
 
-	Class<? extends Payload>[] payload() default {};
+    Class<? extends Payload>[] payload() default {};
 
-	@OverridesAttribute(constraint = Size.class, name = "max")
-	int max() default 8;
-	
-	@OverridesAttribute(constraint = Pattern.class, name = "regexp")
-	String regexp() default "^\\d{8}$";
+    @OverridesAttribute(constraint = Size.class, name = "max")
+    int max() default 8;
 
-	@Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
-	@Retention(RUNTIME)
-	@Documented
-	public @interface List {
-		Day[] value();
-	}
+    @OverridesAttribute(constraint = Pattern.class, name = "regexp")
+    String regexp() default "^\\d{8}$";
+
+    @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
+    @Retention(RUNTIME)
+    @Documented
+    public @interface List {
+        Day[] value();
+    }
 }

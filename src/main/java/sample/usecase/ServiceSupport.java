@@ -29,89 +29,89 @@ import sample.usecase.report.ServiceReportExporter;
 @Setter
 public abstract class ServiceSupport {
 
-	protected final Logger logger = LoggerFactory.getLogger(getClass());
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-	@Autowired
-	private MessageSource msg;
+    @Autowired
+    private MessageSource msg;
 
-	@Autowired
-	private DomainHelper dh;
-	@Autowired
-	private DefaultRepository rep;
-	@Autowired
-	private PlatformTransactionManager tx;
-	@Autowired
-	private IdLockHandler idLock;
+    @Autowired
+    private DomainHelper dh;
+    @Autowired
+    private DefaultRepository rep;
+    @Autowired
+    private PlatformTransactionManager tx;
+    @Autowired
+    private IdLockHandler idLock;
 
-	@Autowired
-	private AuditHandler audit;
-	@Autowired
-	private ServiceMailDeliver mail;
-	@Autowired
-	private ServiceReportExporter report;
+    @Autowired
+    private AuditHandler audit;
+    @Autowired
+    private ServiceMailDeliver mail;
+    @Autowired
+    private ServiceReportExporter report;
 
-	/** ドメイン層向けヘルパークラスを返します。 */
-	protected DomainHelper dh() {
-		return dh;
-	}
+    /** ドメイン層向けヘルパークラスを返します。 */
+    protected DomainHelper dh() {
+        return dh;
+    }
 
-	/** 標準スキーマのRepositoryを返します。 */
-	protected DefaultRepository rep() {
-		return rep;
-	}
+    /** 標準スキーマのRepositoryを返します。 */
+    protected DefaultRepository rep() {
+        return rep;
+    }
 
-	/** IDロックユーティリティを返します。 */
-	protected IdLockHandler idLock() {
-		return idLock;
-	}
-	
-	/** 監査ユーティリティを返します。 */
-	protected AuditHandler audit() {
-		return audit;
-	}
-	
-	/** サービスメールユーティリティを返します。 */
-	protected ServiceMailDeliver mail() {
-		return mail;
-	}
+    /** IDロックユーティリティを返します。 */
+    protected IdLockHandler idLock() {
+        return idLock;
+    }
 
-	/** サービスレポートユーティリティを返します。 */
-	protected ServiceReportExporter report() {
-		return report;
-	}
+    /** 監査ユーティリティを返します。 */
+    protected AuditHandler audit() {
+        return audit;
+    }
 
-	/** i18nメッセージ変換を行います。 */
-	protected String msg(String message) {
-		return msg.getMessage(message, null, message, Locale.getDefault());
-	}
+    /** サービスメールユーティリティを返します。 */
+    protected ServiceMailDeliver mail() {
+        return mail;
+    }
 
-	/** 利用者を返します。 */
-	protected Actor actor() {
-		return dh.actor();
-	}
+    /** サービスレポートユーティリティを返します。 */
+    protected ServiceReportExporter report() {
+        return report;
+    }
 
-	/** トランザクション処理を実行します。 low: クロージャの代わりにCallableで代替 */
-	protected <T> T tx(final Callable<T> callable) {
-		return new TransactionTemplate(tx).execute(new TransactionCallback<T>() {
-			public T doInTransaction(TransactionStatus status) {
-				try {
-					return callable.call();
-				} catch (RuntimeException e) {
-					throw (RuntimeException) e;
-				} catch (Exception e) {
-					throw new InvocationException("error.Exception", e);
-				}
-			}
-		});
-	}
+    /** i18nメッセージ変換を行います。 */
+    protected String msg(String message) {
+        return msg.getMessage(message, null, message, Locale.getDefault());
+    }
 
-	/** 口座ロック付でトランザクション処理を実行します。 */
-	protected <T> T tx(String accountId, LockType lockType, final Callable<T> callable) {
-		return idLock.call(accountId, lockType, new Callable<T>() {
-			public T call() throws Exception {
-				return tx(callable);
-			}
-		});
-	}
+    /** 利用者を返します。 */
+    protected Actor actor() {
+        return dh.actor();
+    }
+
+    /** トランザクション処理を実行します。 low: クロージャの代わりにCallableで代替 */
+    protected <T> T tx(final Callable<T> callable) {
+        return new TransactionTemplate(tx).execute(new TransactionCallback<T>() {
+            public T doInTransaction(TransactionStatus status) {
+                try {
+                    return callable.call();
+                } catch (RuntimeException e) {
+                    throw (RuntimeException) e;
+                } catch (Exception e) {
+                    throw new InvocationException("error.Exception", e);
+                }
+            }
+        });
+    }
+
+    /** 口座ロック付でトランザクション処理を実行します。 */
+    protected <T> T tx(String accountId, LockType lockType, final Callable<T> callable) {
+        return idLock.call(accountId, lockType, new Callable<T>() {
+            public T call() throws Exception {
+                return tx(callable);
+            }
+        });
+    }
 
 }

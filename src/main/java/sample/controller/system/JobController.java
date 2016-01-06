@@ -21,27 +21,27 @@ import sample.usecase.*;
 @Setter
 public class JobController {
 
-	@Autowired
-	private AssetAdminService asset;
-	@Autowired
-	private MasterAdminService master;
+    @Autowired
+    private AssetAdminService asset;
+    @Autowired
+    private MasterAdminService master;
 
-	/** 営業日を進めます。 */
-	@RequestMapping(value = "/daily/processDay", method = {RequestMethod.POST, RequestMethod.GET})
-	public void processDay() {
-		master.processDay();
-	}
+    /** 営業日を進めます。 */
+    @RequestMapping(value = "/daily/processDay", method = { RequestMethod.POST, RequestMethod.GET })
+    public void processDay() {
+        master.processDay();
+    }
 
-	/** 振込出金依頼を締めます。 */
-	@RequestMapping(value = "/daily/closingCashOut",  method = {RequestMethod.POST, RequestMethod.GET})
-	public void closingCashOut() {
-		asset.closingCashOut();
-	}
+    /** 振込出金依頼を締めます。 */
+    @RequestMapping(value = "/daily/closingCashOut", method = { RequestMethod.POST, RequestMethod.GET })
+    public void closingCashOut() {
+        asset.closingCashOut();
+    }
 
-	/** キャッシュフローを実現します。 */
-	@RequestMapping(value = "/daily/realizeCashflow",  method = {RequestMethod.POST, RequestMethod.GET})
-	public void realizeCashflow() {
-		asset.realizeCashflow();
-	}
+    /** キャッシュフローを実現します。 */
+    @RequestMapping(value = "/daily/realizeCashflow", method = { RequestMethod.POST, RequestMethod.GET })
+    public void realizeCashflow() {
+        asset.realizeCashflow();
+    }
 
 }

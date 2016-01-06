@@ -19,83 +19,83 @@ import sample.InvocationException;
 @Component
 public class IdLockHandler {
 
-	private Map<Serializable, ReentrantReadWriteLock> lockMap = new HashMap<>();
+    private Map<Serializable, ReentrantReadWriteLock> lockMap = new HashMap<>();
 
-	/** IDロック上で処理を実行します。 */
-	public <T> T call(Serializable id, LockType lockType, final Callable<T> callable) {
-		if (lockType.isWrite()) {
-			writeLock(id);
-		} else {
-			readLock(id);
-		}
-		try {
-			return callable.call();
-		} catch (RuntimeException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new InvocationException("error.Exception", e);
-		} finally {
-			unlock(id);
-		}
-	}
+    /** IDロック上で処理を実行します。 */
+    public <T> T call(Serializable id, LockType lockType, final Callable<T> callable) {
+        if (lockType.isWrite()) {
+            writeLock(id);
+        } else {
+            readLock(id);
+        }
+        try {
+            return callable.call();
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InvocationException("error.Exception", e);
+        } finally {
+            unlock(id);
+        }
+    }
 
-	private void writeLock(final Serializable id) {
-		if (id == null) {
-			return;
-		}
-		synchronized (lockMap) {
-			idLock(id).writeLock().lock();
-		}
-	}
+    private void writeLock(final Serializable id) {
+        if (id == null) {
+            return;
+        }
+        synchronized (lockMap) {
+            idLock(id).writeLock().lock();
+        }
+    }
 
-	private ReentrantReadWriteLock idLock(final Serializable id) {
-		if (!lockMap.containsKey(id)) {
-			lockMap.put(id, new ReentrantReadWriteLock());
-		}
-		return lockMap.get(id);
-	}
+    private ReentrantReadWriteLock idLock(final Serializable id) {
+        if (!lockMap.containsKey(id)) {
+            lockMap.put(id, new ReentrantReadWriteLock());
+        }
+        return lockMap.get(id);
+    }
 
-	public void readLock(final Serializable id) {
-		if (id == null) {
-			return;
-		}
-		synchronized (lockMap) {
-			idLock(id).readLock().lock();
-		}
-	}
+    public void readLock(final Serializable id) {
+        if (id == null) {
+            return;
+        }
+        synchronized (lockMap) {
+            idLock(id).readLock().lock();
+        }
+    }
 
-	public void unlock(final Serializable id) {
-		if (id == null) {
-			return;
-		}
+    public void unlock(final Serializable id) {
+        if (id == null) {
+            return;
+        }
 
-		synchronized (lockMap) {
-			ReentrantReadWriteLock idLock = idLock(id);
-			if (idLock.isWriteLockedByCurrentThread()) {
-				idLock.writeLock().unlock();
-			} else {
-				idLock.readLock().unlock();
-			}
-		}
-	}
+        synchronized (lockMap) {
+            ReentrantReadWriteLock idLock = idLock(id);
+            if (idLock.isWriteLockedByCurrentThread()) {
+                idLock.writeLock().unlock();
+            } else {
+                idLock.readLock().unlock();
+            }
+        }
+    }
 
-	/**
-	 * ロック種別を表現するEnum。
-	 *
-	 * @author jkazama
-	 */
-	public static enum LockType {
-		/** 読み取り専用ロック */
-		READ,
-		/** 読み書き専用ロック */
-		WRITE;
+    /**
+     * ロック種別を表現するEnum。
+     *
+     * @author jkazama
+     */
+    public static enum LockType {
+        /** 読み取り専用ロック */
+        READ,
+        /** 読み書き専用ロック */
+        WRITE;
 
-		public boolean isRead() {
-			return !isWrite();
-		}
+        public boolean isRead() {
+            return !isWrite();
+        }
 
-		public boolean isWrite() {
-			return this == WRITE;
-		}
-	}
+        public boolean isWrite() {
+            return this == WRITE;
+        }
+    }
 }

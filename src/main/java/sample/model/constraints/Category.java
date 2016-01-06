@@ -22,26 +22,25 @@ import javax.validation.constraints.*;
 @Size
 @Pattern(regexp = "")
 public @interface Category {
-	String message() default "{error.domain.category}";
+    String message() default "{error.domain.category}";
 
-	Class<?>[] groups() default {};
+    Class<?>[] groups() default {};
 
-	Class<? extends Payload>[] payload() default {};
+    Class<? extends Payload>[] payload() default {};
 
-	@OverridesAttribute(constraint = Size.class, name = "max")
-	int max() default 30;
+    @OverridesAttribute(constraint = Size.class, name = "max")
+    int max() default 30;
 
-	@OverridesAttribute(constraint = Pattern.class, name = "regexp")
-	String regexp() default "^\\p{ASCII}*$";
+    @OverridesAttribute(constraint = Pattern.class, name = "regexp")
+    String regexp() default "^\\p{ASCII}*$";
 
-	@OverridesAttribute(constraint = Pattern.class, name = "flags")
-	Pattern.Flag[] flags() default {};
+    @OverridesAttribute(constraint = Pattern.class, name = "flags")
+    Pattern.Flag[] flags() default {};
 
-	@Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
-	@Retention(RUNTIME)
-	@Documented
-	public @interface List {
-		Category[] value();
-	}
+    @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
+    @Retention(RUNTIME)
+    @Documented
+    public @interface List {
+        Category[] value();
+    }
 }
-

@@ -24,26 +24,25 @@ import javax.validation.constraints.*;
 @Size
 @Pattern(regexp = "")
 public @interface Email {
-	String message() default "{error.domain.email}";
+    String message() default "{error.domain.email}";
 
-	Class<?>[] groups() default {};
+    Class<?>[] groups() default {};
 
-	Class<? extends Payload>[] payload() default {};
+    Class<? extends Payload>[] payload() default {};
 
-	@OverridesAttribute(constraint = Size.class, name = "max")
-	int max() default 256;
+    @OverridesAttribute(constraint = Size.class, name = "max")
+    int max() default 256;
 
-	@OverridesAttribute(constraint = Pattern.class, name = "regexp")
-	String regexp() default ".*";
+    @OverridesAttribute(constraint = Pattern.class, name = "regexp")
+    String regexp() default ".*";
 
-	@OverridesAttribute(constraint = Pattern.class, name = "flags")
-	Pattern.Flag[] flags() default {};
+    @OverridesAttribute(constraint = Pattern.class, name = "flags")
+    Pattern.Flag[] flags() default {};
 
-	@Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
-	@Retention(RUNTIME)
-	@Documented
-	public @interface List {
-		Email[] value();
-	}
+    @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
+    @Retention(RUNTIME)
+    @Documented
+    public @interface List {
+        Email[] value();
+    }
 }
-

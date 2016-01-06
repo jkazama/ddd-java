@@ -17,27 +17,27 @@ import sample.context.actor.Actor.ActorRoleType;
 @Component
 public class LoginInterceptor {
 
-	@Autowired
-	private ActorSession session;
-	
-	@Before("execution(* sample.controller.*Controller.*(..))")
-	public void bindUser() {
-		session.bind(new Actor("sample", ActorRoleType.USER));
-	}
-	
-	@Before("execution(* sample.controller.admin.*Controller.*(..))")
-	public void bindAdmin() {
-		session.bind(new Actor("admin", ActorRoleType.INTERNAL));
-	}
-	
-	@Before("execution(* sample.controller.system.*Controller.*(..))")
-	public void bindSystem() {
-		session.bind(Actor.System);
-	}
-	
-	@After("execution(* sample.controller..*Controller.*(..))")
-	public void unbind() {
-		session.unbind();
-	}
-	
+    @Autowired
+    private ActorSession session;
+
+    @Before("execution(* sample.controller.*Controller.*(..))")
+    public void bindUser() {
+        session.bind(new Actor("sample", ActorRoleType.USER));
+    }
+
+    @Before("execution(* sample.controller.admin.*Controller.*(..))")
+    public void bindAdmin() {
+        session.bind(new Actor("admin", ActorRoleType.INTERNAL));
+    }
+
+    @Before("execution(* sample.controller.system.*Controller.*(..))")
+    public void bindSystem() {
+        session.bind(Actor.System);
+    }
+
+    @After("execution(* sample.controller..*Controller.*(..))")
+    public void unbind() {
+        session.unbind();
+    }
+
 }

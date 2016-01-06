@@ -29,48 +29,48 @@ import sample.model.asset.CashInOut;
 @SuppressWarnings("unused")
 public class ServiceMailDeliver {
 
-	@Autowired
-	private MessageSource msg;
-	@Autowired
-	private DefaultRepository rep;
-	@Autowired
-	private PlatformTransactionManager tx;
-	@Autowired
-	private MailHandler mail;
+    @Autowired
+    private MessageSource msg;
+    @Autowired
+    private DefaultRepository rep;
+    @Autowired
+    private PlatformTransactionManager tx;
+    @Autowired
+    private MailHandler mail;
 
-	/** サービスメールを送信します。 */
-	public void send(final String accountId, final ServiceMailCreator creator) {
-		new TransactionTemplate(tx).execute(new TransactionCallback<Object>() {
-			public Object doInTransaction(TransactionStatus status) {
-				try {
-					mail.send(creator.create(Account.load(rep, accountId)));
-					return null;
-				} catch (RuntimeException e) {
-					throw (RuntimeException) e;
-				} catch (Exception e) {
-					throw new InvocationException("errors.MailException", e);
-				}
-			}
-		});
-	}
+    /** サービスメールを送信します。 */
+    public void send(final String accountId, final ServiceMailCreator creator) {
+        new TransactionTemplate(tx).execute(new TransactionCallback<Object>() {
+            public Object doInTransaction(TransactionStatus status) {
+                try {
+                    mail.send(creator.create(Account.load(rep, accountId)));
+                    return null;
+                } catch (RuntimeException e) {
+                    throw (RuntimeException) e;
+                } catch (Exception e) {
+                    throw new InvocationException("errors.MailException", e);
+                }
+            }
+        });
+    }
 
-	/** 出金依頼受付メールを送信します。 */
-	public void sendWithdrawal(final CashInOut cio) {
-		send(cio.getAccountId(), new ServiceMailCreator() {
-			public SendMail create(final Account account) {
-				// low: 実際のタイトルや本文はDBの設定情報から取得
-				String subject = "[" + cio.getId() + "] 出金依頼受付のお知らせ";
-				String body = "{name}様 …省略…";
-				Map<String, String> bodyArgs = new HashMap<>();
-				bodyArgs.put("name", account.getName());
-				return new SendMail(account.getMail(), subject, body, bodyArgs);
-			}
-		});
-	}
+    /** 出金依頼受付メールを送信します。 */
+    public void sendWithdrawal(final CashInOut cio) {
+        send(cio.getAccountId(), new ServiceMailCreator() {
+            public SendMail create(final Account account) {
+                // low: 実際のタイトルや本文はDBの設定情報から取得
+                String subject = "[" + cio.getId() + "] 出金依頼受付のお知らせ";
+                String body = "{name}様 …省略…";
+                Map<String, String> bodyArgs = new HashMap<>();
+                bodyArgs.put("name", account.getName());
+                return new SendMail(account.getMail(), subject, body, bodyArgs);
+            }
+        });
+    }
 
-	/** メール送信情報の生成インターフェース */
-	public static interface ServiceMailCreator {
-		SendMail create(final Account account);
-	}
+    /** メール送信情報の生成インターフェース */
+    public static interface ServiceMailCreator {
+        SendMail create(final Account account);
+    }
 
 }
