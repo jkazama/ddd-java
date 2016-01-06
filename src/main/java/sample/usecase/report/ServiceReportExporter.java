@@ -23,25 +23,25 @@ import sample.model.asset.CashInOut.FindCashInOut;
 @Setter
 @SuppressWarnings("unused")
 public class ServiceReportExporter {
-	
-	@Autowired
-	private MessageSource msg;
-	@Autowired
-	private DefaultRepository rep;
-	@Autowired
-	private PlatformTransactionManager tx;
-	@Autowired
-	private ReportHandler report; //low: サンプルでは未実装なので利用しない
 
-	/**　振込入出金情報をCSV出力します。 */
-	public byte[] exportCashInOut(final FindCashInOut p) {
-		//low: バイナリ生成。条件指定を可能にしたオンラインダウンロードを想定。
-		return new byte[0];
-	}
+    @Autowired
+    private MessageSource msg;
+    @Autowired
+    private DefaultRepository rep;
+    @Autowired
+    private PlatformTransactionManager tx;
+    @Autowired
+    private ReportHandler report; //low: サンプルでは未実装なので利用しない
 
-	/**　振込入出金情報を帳票出力します。 */
-	public void exportFileCashInOut(String baseDay) {
-		//low: 特定のディレクトリへのファイル出力。ジョブ等での利用を想定
-	}
-	
+    /**　振込入出金情報をCSV出力します。 */
+    public byte[] exportCashInOut(final FindCashInOut p) {
+        //low: バイナリ生成。条件指定を可能にしたオンラインダウンロードを想定。
+        return new byte[0];
+    }
+
+    /**　振込入出金情報を帳票出力します。 */
+    public void exportFileCashInOut(String baseDay) {
+        //low: 特定のディレクトリへのファイル出力。ジョブ等での利用を想定
+    }
+
 }

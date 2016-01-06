@@ -18,71 +18,71 @@ import sample.context.Entity;
  */
 public class JpaTemplate {
 
-	private final EntityManager em;
+    private final EntityManager em;
 
-	public JpaTemplate(final EntityManager em) {
-		this.em = em;
-	}
+    public JpaTemplate(final EntityManager em) {
+        this.em = em;
+    }
 
-	/**
-	 * Criteria検索をします。
-	 * low: ページング系は省略。実装する時はQuery#setFirstResult/Query#setMaxResultsあたりを利用
-	 * @param criteria 検索条件
-	 * @return　検索結果
-	 */
-	public <T extends Entity> List<T> find(CriteriaQuery<T> criteria) {
-		return em.createQuery(criteria).getResultList();
-	}
+    /**
+     * Criteria検索をします。
+     * low: ページング系は省略。実装する時はQuery#setFirstResult/Query#setMaxResultsあたりを利用
+     * @param criteria 検索条件
+     * @return　検索結果
+     */
+    public <T extends Entity> List<T> find(CriteriaQuery<T> criteria) {
+        return em.createQuery(criteria).getResultList();
+    }
 
-	/**
-	 * JPQL検索をします。
-	 * low: 引数はMap(名前付き)でやるべきですが、サンプルなので可変引数で割り切り。
-	 * @param qlName NativeQuery名称
-	 * @param args　JPQL設定引数。
-	 * @return　検索結果
-	 */
-	@SuppressWarnings("unchecked")
-	public <T extends Entity> List<T> find(String qlName, Object... args) {
-		return bind(em.createNamedQuery(qlName), args).getResultList();
-	}
+    /**
+     * JPQL検索をします。
+     * low: 引数はMap(名前付き)でやるべきですが、サンプルなので可変引数で割り切り。
+     * @param qlName NativeQuery名称
+     * @param args　JPQL設定引数。
+     * @return　検索結果
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Entity> List<T> find(String qlName, Object... args) {
+        return bind(em.createNamedQuery(qlName), args).getResultList();
+    }
 
-	protected Query bind(final Query query, Object... args) {
-		for (int i = 0; i < args.length; i++) {
-			query.setParameter(i + 1, args[i]);
-		}
-		return query;
-	}
+    protected Query bind(final Query query, Object... args) {
+        for (int i = 0; i < args.length; i++) {
+            query.setParameter(i + 1, args[i]);
+        }
+        return query;
+    }
 
-	/**
-	 * JPQL実行をします。
-	 * @param ql JPQL文字列
-	 * @param args　JPQLバインド引数。
-	 * @return　実行件数
-	 */
-	public int execute(String qlName, Object... args) {
-		return bind(em.createNamedQuery(qlName), args).executeUpdate();
-	}
+    /**
+     * JPQL実行をします。
+     * @param ql JPQL文字列
+     * @param args　JPQLバインド引数。
+     * @return　実行件数
+     */
+    public int execute(String qlName, Object... args) {
+        return bind(em.createNamedQuery(qlName), args).executeUpdate();
+    }
 
-	/**
-	 * SQL検索をします。
-	 * @param returnClass 戻り値クラス。(フィールド名称とSQLのselectフィールド名称が一致している必要があります)
-	 * @param sql SQL文字列
-	 * @param args SQLバインド引数
-	 * @return 検索結果
-	 */
-	@SuppressWarnings("unchecked")
-	public <T extends Entity> List<T> findBySql(Class<T> returnClass, String sql, Object... args) {
-		return bind(em.createNativeQuery(sql, returnClass), args).getResultList();
-	}
+    /**
+     * SQL検索をします。
+     * @param returnClass 戻り値クラス。(フィールド名称とSQLのselectフィールド名称が一致している必要があります)
+     * @param sql SQL文字列
+     * @param args SQLバインド引数
+     * @return 検索結果
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Entity> List<T> findBySql(Class<T> returnClass, String sql, Object... args) {
+        return bind(em.createNativeQuery(sql, returnClass), args).getResultList();
+    }
 
-	/**
-	 * SQL実行をします。
-	 * @param sql SQL文字列
-	 * @param args SQLバインド引数
-	 * @return 実行件数
-	 */
-	public int executeSql(String sql, Object... args) {
-		return bind(em.createNativeQuery(sql), args).executeUpdate();
-	}
+    /**
+     * SQL実行をします。
+     * @param sql SQL文字列
+     * @param args SQLバインド引数
+     * @return 実行件数
+     */
+    public int executeSql(String sql, Object... args) {
+        return bind(em.createNativeQuery(sql), args).executeUpdate();
+    }
 
 }

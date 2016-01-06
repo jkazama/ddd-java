@@ -7,20 +7,18 @@ package sample;
  */
 public class InvocationException extends RuntimeException {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public InvocationException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public InvocationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-	public InvocationException(String message) {
-		super(message);
-	}
+    public InvocationException(String message) {
+        super(message);
+    }
 
-	public InvocationException(Throwable cause) {
-		super(cause);
-	}
-	
-	
-	
+    public InvocationException(Throwable cause) {
+        super(cause);
+    }
+
 }

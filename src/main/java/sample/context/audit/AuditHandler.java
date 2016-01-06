@@ -22,49 +22,49 @@ import sample.context.actor.*;
 @Component
 @Setter
 public class AuditHandler {
-	public static final Logger loggerActor = LoggerFactory.getLogger("Audit.Actor");
-	public static final Logger loggerEvent = LoggerFactory.getLogger("Audit.Event");
+    public static final Logger loggerActor = LoggerFactory.getLogger("Audit.Actor");
+    public static final Logger loggerEvent = LoggerFactory.getLogger("Audit.Event");
 
-	@Autowired
-	private ActorSession session;
-	
-	/** 与えた処理に対し、監査ログを記録します。 */
-	public <T> T audit(String message, final Callable<T> callable) {
-		logger().trace(message(message, "[開始]", null));
-		long start = System.currentTimeMillis();
-		try {
-			T v = callable.call();
-			logger().info(message(message, "[完了]", start));
-			return v;
-		} catch (ValidationException e) {
-			logger().warn(message(message, "[審例]", start));
-			throw e;
-		} catch (RuntimeException e) {
-			logger().error(message(message, "[例外]", start));
-			throw (RuntimeException)e;
-		} catch (Exception e) {
-			logger().error(message(message, "[例外]", start));
-			throw new InvocationException("error.Exception", e);
-		}
-	}
-	
-	private Logger logger() {
-		return session.actor().getRoleType().isSystem() ? loggerEvent : loggerActor;
-	}
-	
-	private String message(String message, String prefix, Long startMillis) {
-		Actor actor = session.actor();
-		StringBuilder sb = new StringBuilder(prefix + " ");
-		if (actor.getRoleType().isAnonymous()) {
-			sb.append("[" + actor.getSource() + "] ");
-		} else if (actor.getRoleType().notSystem()) {
-			sb.append("[" + actor.getId() + "] ");
-		}
-		sb.append(message);
-		if (startMillis != null) {
-			sb.append(" [" + (System.currentTimeMillis() - startMillis) + "ms]");
-		}
-		return sb.toString();
-	}
-	
+    @Autowired
+    private ActorSession session;
+
+    /** 与えた処理に対し、監査ログを記録します。 */
+    public <T> T audit(String message, final Callable<T> callable) {
+        logger().trace(message(message, "[開始]", null));
+        long start = System.currentTimeMillis();
+        try {
+            T v = callable.call();
+            logger().info(message(message, "[完了]", start));
+            return v;
+        } catch (ValidationException e) {
+            logger().warn(message(message, "[審例]", start));
+            throw e;
+        } catch (RuntimeException e) {
+            logger().error(message(message, "[例外]", start));
+            throw (RuntimeException) e;
+        } catch (Exception e) {
+            logger().error(message(message, "[例外]", start));
+            throw new InvocationException("error.Exception", e);
+        }
+    }
+
+    private Logger logger() {
+        return session.actor().getRoleType().isSystem() ? loggerEvent : loggerActor;
+    }
+
+    private String message(String message, String prefix, Long startMillis) {
+        Actor actor = session.actor();
+        StringBuilder sb = new StringBuilder(prefix + " ");
+        if (actor.getRoleType().isAnonymous()) {
+            sb.append("[" + actor.getSource() + "] ");
+        } else if (actor.getRoleType().notSystem()) {
+            sb.append("[" + actor.getId() + "] ");
+        }
+        sb.append(message);
+        if (startMillis != null) {
+            sb.append(" [" + (System.currentTimeMillis() - startMillis) + "ms]");
+        }
+        return sb.toString();
+    }
+
 }

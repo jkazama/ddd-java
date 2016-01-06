@@ -20,11 +20,11 @@ import sample.model.DataFixtures;
 @Transactional
 public abstract class UnitTestSupport {
 
-	@Autowired
-	protected JpaRepository rep;
-	@Autowired
-	protected DataFixtures fixtures;
-	@Autowired
-	protected Timestamper time;
-	
+    @Autowired
+    protected JpaRepository rep;
+    @Autowired
+    protected DataFixtures fixtures;
+    @Autowired
+    protected Timestamper time;
+
 }
