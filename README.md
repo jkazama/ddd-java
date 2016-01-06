@@ -108,7 +108,6 @@ Windows/Macのコンソールから実行するにはGradleのコンソールコ
 1. 「gradlew bootRun」を実行
 1. コンソールに「Started Application」という文字列が出力されればポート8080で起動が完了
 
-「gradlew distZip」を実行する事で、「build/distributions」直下に配布バイナリを生成する事も可能です。
 
 ### ブラウザ
 
