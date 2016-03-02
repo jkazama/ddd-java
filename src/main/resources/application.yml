@@ -4,8 +4,9 @@ spring:
   aop.proxy-target-class: true
   messages.basename: messages-validation, messages
   jackson:
-    date-format: yyyy-MM-dd'T'HH:mm:ss.SSSZ
-    serialization.indent_output: true
+    serialization:
+      indent_output: true
+      write_dates_as_timestamps: false
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
