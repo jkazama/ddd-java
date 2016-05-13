@@ -17,11 +17,11 @@ spring:
     show-sql: true
     hibernate.ddl-auto: create-drop
 
-server.port: 8080
-
-error:
-  whitelabel.enabled: false
-  path: /error
+server:
+  port: 8080
+  error:
+    whitelabel.enabled: false
+    path: /error
 
 sample:
   mail.enable: false
