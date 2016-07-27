@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.*;
 import org.springframework.transaction.support.*;
 
@@ -35,19 +36,26 @@ public abstract class ServiceSupport {
     private MessageSource msg;
 
     @Autowired
+    @Lazy
     private DomainHelper dh;
     @Autowired
+    @Lazy
     private DefaultRepository rep;
     @Autowired
+    @Lazy
     private PlatformTransactionManager tx;
     @Autowired
+    @Lazy
     private IdLockHandler idLock;
 
     @Autowired
+    @Lazy
     private AuditHandler audit;
     @Autowired
+    @Lazy
     private ServiceMailDeliver mail;
     @Autowired
+    @Lazy
     private ServiceReportExporter report;
 
     /** ドメイン層向けヘルパークラスを返します。 */
