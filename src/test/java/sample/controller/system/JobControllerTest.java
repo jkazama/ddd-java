@@ -1,18 +1,23 @@
 package sample.controller.system;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.mockito.BDDMockito.*;
 
-import java.math.BigDecimal;
-
-import org.junit.*;
+import org.junit.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import sample.*;
-import sample.model.asset.*;
+import sample.usecase.*;
 
-//low: 簡易な正常系検証が中心。100万保有のsampleを前提としてしまっています。
+//low: 簡易な正常系検証が中心
+@WebMvcTest(JobController.class)
 public class JobControllerTest extends WebTestSupport {
 
+    @MockBean
+    private AssetAdminService asset;
+    @MockBean
+    private MasterAdminService master;
+    
     @Override
     protected String prefix() {
         return "/system/job";
@@ -20,39 +25,20 @@ public class JobControllerTest extends WebTestSupport {
 
     @Test
     public void processDay() throws Exception {
-        String currentDay = time.day();
-        assertThat(currentDay, is("20141118"));
-        performGet("/daily/processDay");
-        assertThat(time.day(), is("20141119"));
-        performGet("/daily/processDay");
-        assertThat(time.day(), is("20141120"));
-        time.daySet(currentDay);
+        willDoNothing().given(master).processDay();
+        performPost("/daily/processDay", JsonExpects.success());
     }
 
     @Test
     public void closingCashOut() throws Exception {
-        // 当日発生の振込出金依頼を準備
-        CashInOut co = fixtures.cio("sample", "3000", true);
-        co.setEventDay(time.day());
-        co.save(rep);
-        assertThat(CashInOut.load(rep, co.getId()), hasProperty("statusType", is(ActionStatusType.UNPROCESSED)));
-        // 実行検証
-        performGet("/daily/closingCashOut");
-        assertThat(CashInOut.load(rep, co.getId()), hasProperty("statusType", is(ActionStatusType.PROCESSED)));
+        willDoNothing().given(asset).closingCashOut();
+        performPost("/daily/closingCashOut", JsonExpects.success());
     }
 
     @Test
     public void realizeCashflow() throws Exception {
-        // 当日実現のキャッシュフローを準備
-        Cashflow cf = fixtures.cf("sample", "3000", "20141117", "20141118").save(rep);
-        assertThat(Cashflow.load(rep, cf.getId()), hasProperty("statusType", is(ActionStatusType.UNPROCESSED)));
-        assertThat(CashBalance.getOrNew(rep, "sample", "JPY"),
-                hasProperty("amount", is(new BigDecimal("1000000.0000"))));
-        // 実行検証
-        performGet("/daily/realizeCashflow");
-        assertThat(Cashflow.load(rep, cf.getId()), hasProperty("statusType", is(ActionStatusType.PROCESSED)));
-        assertThat(CashBalance.getOrNew(rep, "sample", "JPY"),
-                hasProperty("amount", is(new BigDecimal("1003000.0000"))));
+        willDoNothing().given(asset).realizeCashflow();
+        performPost("/daily/realizeCashflow", JsonExpects.success());
     }
 
 }

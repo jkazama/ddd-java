@@ -55,7 +55,7 @@ public class JpaTemplate {
 
     /**
      * JPQL実行をします。
-     * @param ql JPQL文字列
+     * @param qlName JPQL文字列
      * @param args　JPQLバインド引数。
      * @return　実行件数
      */

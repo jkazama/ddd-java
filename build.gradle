@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.3.5.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE"
     }
 }
 
@@ -11,16 +11,30 @@ apply plugin: "java"
 apply plugin: "spring-boot"
 apply plugin: "eclipse"
 
-version = "1.3.2"
+version = "1.4.0"
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
 
+def defaultEncoding = 'UTF-8'
+tasks.withType(AbstractCompile).each { it.options.encoding = defaultEncoding }
+
+springBoot {
+    executable = true
+}
+
+javadoc {
+    options.encoding = defaultEncoding
+    options.addBooleanOption('Xdoclint:none', true)
+}
+
+test {
+    include "**/model/**", "**/controller/**", "**/util/**", "**/context/**"
+}
+
 repositories {
     jcenter()
 }
-
-tasks.withType(JavaCompile){ options.encoding='UTF-8' }
 
 eclipseJdt << {
     File f = file('.settings/org.eclipse.core.resources.prefs')
@@ -28,17 +42,16 @@ eclipseJdt << {
     f.append('encoding/<project>=UTF-8')
 }
 
-
 dependencies {
-    compile "org.projectlombok:lombok:1.16.6"
+    compileOnly "org.projectlombok:lombok:1.16.8"
     compile "org.springframework.boot:spring-boot-starter-web"
     compile "org.springframework.boot:spring-boot-starter-data-jpa"
     compile "org.springframework.boot:spring-boot-starter-aop"
-    compile "org.springframework.boot:spring-boot-devtools"
+    compile "org.springframework.boot:spring-boot-starter-actuator"
     runtime "com.h2database:h2:1.4.+"
     testCompile "org.springframework.boot:spring-boot-starter-test"
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = "2.13"
+  gradleVersion = "2.14.1"
 }

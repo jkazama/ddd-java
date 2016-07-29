@@ -31,7 +31,7 @@ public class AssetController {
     private AssetService service;
 
     /** 未処理の振込依頼情報を検索します。 */
-    @RequestMapping(value = "/cio/unprocessedOut")
+    @GetMapping("/cio/unprocessedOut")
     public List<CashOutUI> findUnprocessedCashOut() {
         List<CashOutUI> list = new ArrayList<>();
         for (CashInOut cio : service.findUnprocessedCashOut()) {

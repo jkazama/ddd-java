@@ -62,7 +62,7 @@ public interface Repository {
 
     /**
      * {@link Entity}を新規追加します。
-     * @param <PK> 戻り値の型
+     * @param <T> 戻り値の型
      * @param entity 追加対象{@link Entity}
      * @return 追加した{@link Entity}のプライマリキー
      */

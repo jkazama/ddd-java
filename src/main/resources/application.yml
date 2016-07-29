@@ -5,8 +5,8 @@ spring:
   messages.basename: messages-validation, messages
   jackson:
     serialization:
-      indent_output: true
-      write_dates_as_timestamps: false
+      indent-output: true
+      write-dates-as-timestamps: false
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
@@ -22,6 +22,9 @@ server:
   error:
     whitelabel.enabled: false
     path: /error
+
+management:
+  context-path: /management
 
 sample:
   mail.enable: false
