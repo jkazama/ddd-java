@@ -11,7 +11,7 @@ apply plugin: "java"
 apply plugin: "spring-boot"
 apply plugin: "eclipse"
 
-version = "1.4.0"
+version = "1.4.1"
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
@@ -53,5 +53,5 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = "2.14.1"
+    gradleVersion = "3.0"
 }
