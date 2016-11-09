@@ -3,15 +3,15 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.4.1.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.4.2.RELEASE"
     }
 }
 
 apply plugin: "java"
-apply plugin: "spring-boot"
+apply plugin: "org.springframework.boot"
 apply plugin: "eclipse"
 
-version = "1.4.2"
+version = "1.4.3"
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
@@ -43,7 +43,7 @@ eclipseJdt << {
 }
 
 dependencies {
-    compileOnly "org.projectlombok:lombok:1.16.8"
+    compileOnly "org.projectlombok:lombok:1.16.10"
     compile "org.springframework.boot:spring-boot-starter-web"
     compile "org.springframework.boot:spring-boot-starter-data-jpa"
     compile "org.springframework.boot:spring-boot-starter-aop"
@@ -53,5 +53,5 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = "3.0"
+    gradleVersion = "3.1"
 }
