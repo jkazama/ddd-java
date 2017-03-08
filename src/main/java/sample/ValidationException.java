@@ -93,7 +93,7 @@ public class ValidationException extends RuntimeException {
         }
 
         public Warn head() {
-            Assert.notEmpty(list);
+            Assert.notEmpty(list, "Not found warn.");
             return list.get(0);
         }
 
