@@ -11,7 +11,7 @@ apply plugin: "java"
 apply plugin: "org.springframework.boot"
 apply plugin: "eclipse"
 
-version = "1.5.1"
+version = "1.5.2"
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
