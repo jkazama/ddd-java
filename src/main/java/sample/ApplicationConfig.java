@@ -15,7 +15,7 @@ public class ApplicationConfig {
 
     /** BeanValidationメッセージのUTF-8に対応したValidator。 */
     @Bean
-    public LocalValidatorFactoryBean mvcValidator(MessageSource message) {
+    public LocalValidatorFactoryBean defaultValidator(MessageSource message) {
         LocalValidatorFactoryBean factory = new LocalValidatorFactoryBean();
         factory.setValidationMessageSource(message);
         return factory;
