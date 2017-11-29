@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.8.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.9.RELEASE"
     }
 }
 
@@ -11,7 +11,7 @@ apply plugin: "java"
 apply plugin: "org.springframework.boot"
 apply plugin: "eclipse"
 
-version = "1.5.7"
+version = "1.5.8"
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
@@ -54,5 +54,5 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = "4.2.1"
+    gradleVersion = "4.3.1"
 }
