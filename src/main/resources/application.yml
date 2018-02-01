@@ -1,12 +1,9 @@
 ---
 spring:
   application.name: ddd-java
-  aop.proxy-target-class: true
   messages.basename: messages-validation, messages
-  jackson:
-    serialization:
-      indent-output: true
-      write-dates-as-timestamps: false
+  jackson.serialization:
+    indent-output: true
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
@@ -23,8 +20,11 @@ server:
     whitelabel.enabled: false
     path: /error
 
+
 management:
-  server.servlet.context-path: /management
+  endpoints.web:
+    base-path: /management
+    expose: "*"
 
 sample:
   mail.enable: false
