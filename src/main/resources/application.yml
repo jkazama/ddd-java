@@ -24,7 +24,7 @@ server:
     path: /error
 
 management:
-  context-path: /management
+  server.servlet.context-path: /management
 
 sample:
   mail.enable: false

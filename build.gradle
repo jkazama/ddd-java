@@ -1,27 +1,29 @@
 buildscript {
+    ext {
+        springBootVersion = "2.0.0.RC1"
+    }
     repositories {
         jcenter()
+        maven { url "https://repo.spring.io/snapshot" }
+        maven { url "https://repo.spring.io/milestone" }
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.10.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
     }
 }
 
 apply plugin: "java"
-apply plugin: "org.springframework.boot"
 apply plugin: "eclipse"
+apply plugin: "org.springframework.boot"
+apply plugin: 'io.spring.dependency-management'
 
-version = "1.5.9"
+version = "2.0.0"
 
-sourceCompatibility = '1.7'
-targetCompatibility = '1.7'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 def defaultEncoding = 'UTF-8'
 tasks.withType(AbstractCompile).each { it.options.encoding = defaultEncoding }
-
-springBoot {
-    executable = true
-}
 
 javadoc {
     options.encoding = defaultEncoding
@@ -34,6 +36,8 @@ test {
 
 repositories {
     jcenter()
+    maven { url "https://repo.spring.io/snapshot" }
+    maven { url "https://repo.spring.io/milestone" }
 }
 
 eclipseJdt.doLast {
