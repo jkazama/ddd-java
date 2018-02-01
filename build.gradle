@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.9.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.10.RELEASE"
     }
 }
 
@@ -11,7 +11,7 @@ apply plugin: "java"
 apply plugin: "org.springframework.boot"
 apply plugin: "eclipse"
 
-version = "1.5.8"
+version = "1.5.9"
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
@@ -43,16 +43,16 @@ eclipseJdt.doLast {
 }
 
 dependencies {
-    compileOnly "org.projectlombok:lombok:1.16.18"
+    compileOnly "org.projectlombok:lombok:1.16.20"
     compile "org.springframework.boot:spring-boot-starter-web"
     compile "org.springframework.boot:spring-boot-starter-data-jpa"
     compile "org.springframework.boot:spring-boot-starter-aop"
     compile "org.springframework.boot:spring-boot-starter-actuator"
     runtime "com.h2database:h2:1.4.+"
-    testCompileOnly "org.projectlombok:lombok:1.16.18"
+    testCompileOnly "org.projectlombok:lombok:1.16.20"
     testCompile "org.springframework.boot:spring-boot-starter-test"
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = "4.3.1"
+    gradleVersion = "4.5"
 }
