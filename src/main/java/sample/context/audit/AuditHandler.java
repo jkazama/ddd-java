@@ -48,6 +48,14 @@ public class AuditHandler {
         }
     }
 
+    /** 与えた処理に対し、監査ログを記録します。 */
+    public void audit(String message, final Runnable runnable) {
+        audit(message, () -> {
+            runnable.run();
+            return null;
+        });
+    }
+
     private Logger logger() {
         return session.actor().getRoleType().isSystem() ? loggerEvent : loggerActor;
     }

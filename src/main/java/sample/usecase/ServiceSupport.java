@@ -98,27 +98,37 @@ public abstract class ServiceSupport {
         return dh.actor();
     }
 
-    /** トランザクション処理を実行します。 low: クロージャの代わりにCallableで代替 */
+    /** トランザクション処理を実行します。 */
     protected <T> T tx(final Callable<T> callable) {
-        return new TransactionTemplate(tx).execute(new TransactionCallback<T>() {
-            public T doInTransaction(TransactionStatus status) {
-                try {
-                    return callable.call();
-                } catch (RuntimeException e) {
-                    throw (RuntimeException) e;
-                } catch (Exception e) {
-                    throw new InvocationException("error.Exception", e);
-                }
+        return new TransactionTemplate(tx).execute(status -> {
+            try {
+                return callable.call();
+            } catch (RuntimeException e) {
+                throw (RuntimeException) e;
+            } catch (Exception e) {
+                throw new InvocationException("error.Exception", e);
             }
+        });
+    }
+
+    /** トランザクション処理を実行します。 */
+    protected <T> T tx(final Runnable runnable) {
+        return tx(() -> {
+            runnable.run();
+            return null;
         });
     }
 
     /** 口座ロック付でトランザクション処理を実行します。 */
     protected <T> T tx(String accountId, LockType lockType, final Callable<T> callable) {
-        return idLock.call(accountId, lockType, new Callable<T>() {
-            public T call() throws Exception {
-                return tx(callable);
-            }
+        return idLock.call(accountId, lockType, () -> tx(callable));
+    }
+
+    /** 口座ロック付でトランザクション処理を実行します。 */
+    protected <T> T tx(String accountId, LockType lockType, final Runnable runnable) {
+        return tx(accountId, lockType, () -> {
+            runnable.run();
+            return null;
         });
     }
 

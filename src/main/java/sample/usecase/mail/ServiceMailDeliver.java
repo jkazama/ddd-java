@@ -40,31 +40,27 @@ public class ServiceMailDeliver {
 
     /** サービスメールを送信します。 */
     public void send(final String accountId, final ServiceMailCreator creator) {
-        new TransactionTemplate(tx).execute(new TransactionCallback<Object>() {
-            public Object doInTransaction(TransactionStatus status) {
-                try {
-                    mail.send(creator.create(Account.load(rep, accountId)));
-                    return null;
-                } catch (RuntimeException e) {
-                    throw (RuntimeException) e;
-                } catch (Exception e) {
-                    throw new InvocationException("errors.MailException", e);
-                }
+        new TransactionTemplate(tx).execute(status -> {
+            try {
+                mail.send(creator.create(Account.load(rep, accountId)));
+                return null;
+            } catch (RuntimeException e) {
+                throw (RuntimeException) e;
+            } catch (Exception e) {
+                throw new InvocationException("errors.MailException", e);
             }
         });
     }
 
     /** 出金依頼受付メールを送信します。 */
     public void sendWithdrawal(final CashInOut cio) {
-        send(cio.getAccountId(), new ServiceMailCreator() {
-            public SendMail create(final Account account) {
-                // low: 実際のタイトルや本文はDBの設定情報から取得
-                String subject = "[" + cio.getId() + "] 出金依頼受付のお知らせ";
-                String body = "{name}様 …省略…";
-                Map<String, String> bodyArgs = new HashMap<>();
-                bodyArgs.put("name", account.getName());
-                return new SendMail(account.getMail(), subject, body, bodyArgs);
-            }
+        send(cio.getAccountId(), account -> {
+            // low: 実際のタイトルや本文はDBの設定情報から取得
+            String subject = "[" + cio.getId() + "] 出金依頼受付のお知らせ";
+            String body = "{name}様 …省略…";
+            Map<String, String> bodyArgs = new HashMap<>();
+            bodyArgs.put("name", account.getName());
+            return new SendMail(account.getMail(), subject, body, bodyArgs);
         });
     }
 
