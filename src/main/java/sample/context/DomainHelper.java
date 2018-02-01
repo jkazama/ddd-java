@@ -30,6 +30,13 @@ public class DomainHelper {
     public Actor actor() {
         return actorSession.actor();
     }
+    
+    /**
+     * @return ログインセッション情報
+     */
+    public ActorSession actorSession() {
+        return actorSession;
+    }
 
     /**
      * @return 日時ユーティリティ
