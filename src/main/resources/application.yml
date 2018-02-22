@@ -11,7 +11,7 @@ spring:
     password:
   jpa:
     open-in-view: false
-    show-sql: true
+    show-sql: false
     hibernate.ddl-auto: create-drop
 
 server:
@@ -24,7 +24,7 @@ server:
 management:
   endpoints.web:
     base-path: /management
-    expose: "*"
+    exposure.include: "*"
 
 sample:
   mail.enable: false
