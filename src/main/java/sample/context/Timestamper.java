@@ -20,7 +20,11 @@ public class Timestamper {
     private String day;
 
     public Timestamper() {
-        this.day = DateUtils.dayFormat(new Date());
+        this(DateUtils.dayFormat(new Date()));
+    }
+    
+    public Timestamper(String day) {
+        this.day = day;
     }
 
     /**

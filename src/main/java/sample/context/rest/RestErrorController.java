@@ -2,12 +2,10 @@ package sample.context.rest;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.*;
+import org.springframework.boot.web.servlet.error.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.*;
+import org.springframework.web.context.request.ServletWebRequest;
 
 /**
  * REST用の例外ハンドリングを行うController。
@@ -29,9 +27,8 @@ public class RestErrorController implements ErrorController {
     }
 
     @RequestMapping(PATH_ERROR)
-    public Map<String, Object> error(HttpServletRequest request) {
-        RequestAttributes requestAttributes = new ServletRequestAttributes(request);
-        return this.errorAttributes.getErrorAttributes(requestAttributes, false);
+    public Map<String, Object> error(ServletWebRequest request) {
+        return this.errorAttributes.getErrorAttributes(request, false);
     }
 
 }

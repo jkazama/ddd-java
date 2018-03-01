@@ -47,11 +47,9 @@ public class DataFixtures {
 
     @PostConstruct
     public void initialize() {
-        new TransactionTemplate(tx).execute(new TransactionCallback<Object>() {
-            public Object doInTransaction(TransactionStatus status) {
-                initializeInTx();
-                return null;
-            }
+        new TransactionTemplate(tx).execute(status -> {
+            initializeInTx();
+            return null;
         });
     }
 

@@ -38,6 +38,14 @@ public class IdLockHandler {
             unlock(id);
         }
     }
+    
+    /** IDロック上で処理を実行します。 */
+    public void call(Serializable id, LockType lockType, final Runnable runnable) {
+        call(id, lockType, () -> {
+            runnable.run();
+            return null;
+        });
+    }
 
     private void writeLock(final Serializable id) {
         if (id == null) {

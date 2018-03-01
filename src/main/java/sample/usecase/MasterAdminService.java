@@ -1,7 +1,5 @@
 package sample.usecase;
 
-import java.util.concurrent.Callable;
-
 import org.springframework.stereotype.Service;
 
 import sample.context.Timestamper;
@@ -19,12 +17,9 @@ public class MasterAdminService extends ServiceSupport {
      * low: 実際はスレッドセーフの考慮やDB連携含めて、色々とちゃんと作らないとダメです。
      */
     public void processDay() {
-        audit().audit("営業日を進める", new Callable<Object>() {
-            public Object call() throws Exception {
-                Timestamper time = dh().time();
-                time.daySet(time.dayPlus(1));
-                return null;
-            }
+        audit().audit("営業日を進める", () -> {
+            Timestamper time = dh().time();
+            time.daySet(time.dayPlus(1));
         });
     }
 
