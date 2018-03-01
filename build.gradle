@@ -1,11 +1,9 @@
 buildscript {
     ext {
-        springBootVersion = "2.0.0.RC2"
+        springBootVersion = "2.0.0.RELEASE"
     }
     repositories {
         jcenter()
-        maven { url "https://repo.spring.io/snapshot" }
-        maven { url "https://repo.spring.io/milestone" }
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
@@ -36,8 +34,6 @@ test {
 
 repositories {
     jcenter()
-    maven { url "https://repo.spring.io/snapshot" }
-    maven { url "https://repo.spring.io/milestone" }
 }
 
 eclipseJdt.doLast {
@@ -58,5 +54,5 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = "4.5"
+    gradleVersion = "4.6"
 }
