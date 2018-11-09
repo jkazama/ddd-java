@@ -11,7 +11,7 @@ import org.junit.*;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder.Builder;
 import org.springframework.orm.jpa.*;
-import org.springframework.orm.jpa.vendor.*;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -87,16 +87,12 @@ public class EntityTestSupport {
     protected void setupRepository() {
         setupEntityManagerFactory();
         rep = new DefaultRepository();
-        rep.setDh(dh);
+        rep.setDh(SimpleObjectProvider.of(dh));
         rep.setEm(SharedEntityManagerCreator.createSharedEntityManager(emf));
     }
 
     protected void setupDataFixtures() {
-        fixtures = new DataFixtures();
-        fixtures.setTime(time);
-        fixtures.setUid(uid);
-        fixtures.setRep(rep);
-        fixtures.setTx(txm);
+        fixtures = new DataFixtures(rep, txm, time, uid);
     }
 
     protected void setupEntityManagerFactory() {

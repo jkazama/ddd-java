@@ -7,6 +7,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.stereotype.Component;
 
+import lombok.Value;
 import sample.InvocationException;
 
 /**
@@ -94,16 +95,24 @@ public class IdLockHandler {
      */
     public static enum LockType {
         /** 読み取り専用ロック */
-        READ,
+        Read,
         /** 読み書き専用ロック */
-        WRITE;
+        Write;
 
         public boolean isRead() {
             return !isWrite();
         }
 
         public boolean isWrite() {
-            return this == WRITE;
+            return this == Write;
         }
     }
+    
+    /** IdLock の対象と種別のペアを表現します。 */
+    @Value
+    public static class IdLockPair {
+        private Serializable id;
+        private LockType lockType;
+    }
+    
 }

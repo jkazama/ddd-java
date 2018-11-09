@@ -1,8 +1,5 @@
 package sample.context;
 
-import lombok.Setter;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import sample.context.actor.*;
@@ -14,15 +11,20 @@ import sample.context.uid.IdGenerator;
  * @author jkazama
  */
 @Component
-@Setter
 public class DomainHelper {
 
-    @Autowired
-    private ActorSession actorSession;
-    @Autowired
-    private Timestamper time;
-    @Autowired
-    private IdGenerator uid;
+    private final ActorSession actorSession;
+    private final Timestamper time;
+    private final IdGenerator uid;
+
+    public DomainHelper(
+            ActorSession actorSession,
+            Timestamper time,
+            IdGenerator uid) {
+        this.actorSession = actorSession;
+        this.time = time;
+        this.uid = uid;
+    }
 
     /**
      * @return ログイン中のユースケース利用者
@@ -30,7 +32,7 @@ public class DomainHelper {
     public Actor actor() {
         return actorSession.actor();
     }
-    
+
     /**
      * @return ログインセッション情報
      */

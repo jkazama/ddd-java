@@ -2,10 +2,7 @@ package sample.context.audit;
 
 import java.util.concurrent.Callable;
 
-import lombok.Setter;
-
 import org.slf4j.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import sample.*;
@@ -20,13 +17,15 @@ import sample.context.actor.*;
  * @author jkazama
  */
 @Component
-@Setter
 public class AuditHandler {
     public static final Logger loggerActor = LoggerFactory.getLogger("Audit.Actor");
     public static final Logger loggerEvent = LoggerFactory.getLogger("Audit.Event");
 
-    @Autowired
-    private ActorSession session;
+    private final ActorSession session;
+
+    public AuditHandler(ActorSession session) {
+        this.session = session;
+    }
 
     /** 与えた処理に対し、監査ログを記録します。 */
     public <T> T audit(String message, final Callable<T> callable) {

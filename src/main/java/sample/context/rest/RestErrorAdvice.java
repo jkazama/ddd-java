@@ -5,8 +5,6 @@ import java.util.*;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.*;
 
-import org.apache.commons.logging.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.*;
 import org.springframework.http.*;
 import org.springframework.validation.*;
@@ -14,9 +12,9 @@ import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.*;
 
-import sample.ValidationException.Warn;
-import sample.ValidationException.Warns;
+import lombok.extern.slf4j.Slf4j;
 import sample.ValidationException;
+import sample.ValidationException.*;
 
 /**
  * REST用の例外Map変換サポート。
@@ -25,12 +23,14 @@ import sample.ValidationException;
  * @author jkazama
  */
 @ControllerAdvice(annotations = RestController.class)
+@Slf4j
 public class RestErrorAdvice {
 
-    protected Log log = LogFactory.getLog(getClass());
+    private final MessageSource msg;
 
-    @Autowired
-    private MessageSource msg;
+    public RestErrorAdvice(MessageSource msg) {
+        this.msg = msg;
+    }
 
     @ExceptionHandler(ServletRequestBindingException.class)
     public ResponseEntity<Map<String, String[]>> handleServletRequestBinding(ServletRequestBindingException e) {

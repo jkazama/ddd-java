@@ -1,7 +1,7 @@
 buildscript {
     ext {
-        springBootVersion = "2.0.5.RELEASE"
-        lombokVersion = "1.16.20"
+        springBootVersion = "2.1.0.RELEASE"
+        lombokVersion = "1.18.4"
     }
     repositories {
         jcenter()
@@ -16,7 +16,7 @@ apply plugin: "eclipse"
 apply plugin: "org.springframework.boot"
 apply plugin: 'io.spring.dependency-management'
 
-version = "2.0.5"
+version = "2.1.0"
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -57,5 +57,5 @@ dependencies {
 }
 
 wrapper {
-    gradleVersion = "4.10"
+    gradleVersion = "4.10.2"
 }

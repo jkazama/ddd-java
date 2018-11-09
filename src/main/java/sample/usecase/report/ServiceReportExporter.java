@@ -1,8 +1,5 @@
 package sample.usecase.report;
 
-import lombok.Setter;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -20,18 +17,24 @@ import sample.model.asset.CashInOut.FindCashInOut;
  * @author jkazama
  */
 @Component
-@Setter
 @SuppressWarnings("unused")
 public class ServiceReportExporter {
 
-    @Autowired
-    private MessageSource msg;
-    @Autowired
-    private DefaultRepository rep;
-    @Autowired
-    private PlatformTransactionManager tx;
-    @Autowired
-    private ReportHandler report; //low: サンプルでは未実装なので利用しない
+    private final MessageSource msg;
+    private final DefaultRepository rep;
+    private final PlatformTransactionManager tx;
+    private final ReportHandler report; //low: サンプルでは未実装なので利用しない
+
+    public ServiceReportExporter(
+            MessageSource msg,
+            DefaultRepository rep,
+            PlatformTransactionManager tx,
+            ReportHandler report) {
+        this.msg = msg;
+        this.rep = rep;
+        this.tx = tx;
+        this.report = report;
+    }
 
     /**　振込入出金情報をCSV出力します。 */
     public byte[] exportCashInOut(final FindCashInOut p) {

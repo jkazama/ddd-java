@@ -5,14 +5,12 @@ import java.util.*;
 
 import javax.validation.Valid;
 
-import lombok.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import lombok.Value;
 import sample.ActionStatusType;
 import sample.context.Dto;
-import sample.model.asset.*;
+import sample.model.asset.CashInOut;
 import sample.model.asset.CashInOut.RegCashOut;
 import sample.usecase.AssetService;
 import sample.util.TimePoint;
@@ -24,11 +22,13 @@ import sample.util.TimePoint;
  */
 @RestController
 @RequestMapping("/asset")
-@Setter
 public class AssetController {
 
-    @Autowired
-    private AssetService service;
+    private final AssetService service;
+
+    public AssetController(AssetService service) {
+        this.service = service;
+    }
 
     /** 未処理の振込依頼情報を検索します。 */
     @GetMapping("/cio/unprocessedOut")

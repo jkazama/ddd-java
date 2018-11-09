@@ -1,7 +1,5 @@
 package sample.controller.system;
 
-import lombok.Setter;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,13 +16,17 @@ import sample.usecase.*;
  */
 @RestController
 @RequestMapping("/system/job")
-@Setter
 public class JobController {
 
     @Autowired
     private AssetAdminService asset;
     @Autowired
     private MasterAdminService master;
+
+    public JobController(AssetAdminService asset, MasterAdminService master) {
+        this.asset = asset;
+        this.master = master;
+    }
 
     /** 営業日を進めます。 */
     @RequestMapping(value = "/daily/processDay", method = { RequestMethod.POST, RequestMethod.GET })

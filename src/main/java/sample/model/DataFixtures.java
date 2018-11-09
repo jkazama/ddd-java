@@ -5,23 +5,18 @@ import java.util.Date;
 
 import javax.annotation.PostConstruct;
 
-import lombok.Setter;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.*;
-import org.springframework.transaction.support.*;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import sample.ActionStatusType;
 import sample.context.Timestamper;
 import sample.context.actor.Actor;
-import sample.context.orm.JpaRepository;
+import sample.context.orm.*;
 import sample.context.uid.IdGenerator;
 import sample.model.account.*;
 import sample.model.account.Account.AccountStatusType;
 import sample.model.asset.*;
-import sample.model.asset.Cashflow.CashflowType;
-import sample.model.asset.Cashflow.RegCashflow;
+import sample.model.asset.Cashflow.*;
 import sample.model.master.SelfFiAccount;
 import sample.util.TimePoint;
 
@@ -33,21 +28,27 @@ import sample.util.TimePoint;
  * @author jkazama
  */
 @Component
-@Setter
 public class DataFixtures {
 
-    @Autowired
-    private JpaRepository rep;
-    @Autowired
-    private Timestamper time;
-    @Autowired
-    private IdGenerator uid;
-    @Autowired
-    private PlatformTransactionManager tx;
+    private final JpaRepository rep;
+    private final PlatformTransactionManager txm;
+    private final Timestamper time;
+    private final IdGenerator uid;
+
+    public DataFixtures(
+            JpaRepository rep,
+            PlatformTransactionManager txm,
+            Timestamper time,
+            IdGenerator uid) {
+        this.rep = rep;
+        this.txm = txm;
+        this.time = time;
+        this.uid = uid;
+    }
 
     @PostConstruct
     public void initialize() {
-        new TransactionTemplate(tx).execute(status -> {
+        TxTemplate.of(txm).tx(() -> {
             initializeInTx();
             return null;
         });

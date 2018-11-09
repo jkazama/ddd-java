@@ -7,6 +7,7 @@ import javax.persistence.*;
 
 import lombok.Setter;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import sample.context.*;
@@ -25,7 +26,7 @@ import sample.context.Entity;
 public abstract class JpaRepository implements Repository {
 
     @Autowired
-    private DomainHelper dh;
+    private ObjectProvider<DomainHelper> dh;
 
     /**
      * 管理するEntityManagerを返します。
@@ -42,7 +43,7 @@ public abstract class JpaRepository implements Repository {
      */
     @Override
     public DomainHelper dh() {
-        return dh;
+        return dh.getObject();
     }
 
     /**
