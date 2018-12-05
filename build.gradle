@@ -1,22 +1,13 @@
-buildscript {
-    ext {
-        springBootVersion = "2.1.0.RELEASE"
-        lombokVersion = "1.18.4"
-    }
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-    }
+plugins {
+    id "java"
+    id "eclipse"
+    id "org.springframework.boot" version "2.1.1.RELEASE"
+    id "io.spring.dependency-management" version "1.0.6.RELEASE"
 }
 
-apply plugin: "java"
-apply plugin: "eclipse"
-apply plugin: "org.springframework.boot"
-apply plugin: 'io.spring.dependency-management'
+ext['lombok.version'] = "1.18.4"
 
-version = "2.1.0"
+version = "2.1.1"
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -44,18 +35,18 @@ eclipseJdt.doLast {
 }
 
 dependencies {
-    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    compileOnly "org.projectlombok:lombok:${lombokVersion}"
-    compile "org.springframework.boot:spring-boot-starter-web"
-    compile "org.springframework.boot:spring-boot-starter-data-jpa"
-    compile "org.springframework.boot:spring-boot-starter-aop"
-    compile "org.springframework.boot:spring-boot-starter-actuator"
+    annotationProcessor "org.projectlombok:lombok"
+    compileOnly "org.projectlombok:lombok"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    implementation "org.springframework.boot:spring-boot-starter-aop"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
     runtime "com.h2database:h2"
-    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok"
+    testCompileOnly "org.projectlombok:lombok"
     testCompile "org.springframework.boot:spring-boot-starter-test"
 }
 
 wrapper {
-    gradleVersion = "4.10.2"
+    gradleVersion = "5.0"
 }
