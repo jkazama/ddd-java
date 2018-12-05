@@ -84,11 +84,11 @@ main
 開発IDEである[STS](https://spring.io/tools/sts)で本サンプルを利用するには、事前に以下の手順を行っておく必要があります。
 ※EclipseにSpringIDEプラグインを入れても可
 
-- JDK7以上のインストール
+- JDK8以上のインストール
 - [Lombok](http://projectlombok.org/download.html)のパッチ当て(.jarを実行してインストーラの指示通りに実行)
 
 次の手順で本サンプルをプロジェクト化してください。  
-※コンパイルエラーになる時は、Javaコンパイラの設定が1.7以上になっているかを確認してください。
+※コンパイルエラーになる時は、Javaコンパイラの設定が1.8以上になっているかを確認してください。
 
 1. ```./gradlew eclipse```
 1. パッケージエクスプローラから「右クリック -> Import」で*Exsisting Project into Workspace*を選択して*Next*を押下
