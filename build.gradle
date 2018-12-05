@@ -44,7 +44,7 @@ dependencies {
     runtime "com.h2database:h2"
     testAnnotationProcessor "org.projectlombok:lombok"
     testCompileOnly "org.projectlombok:lombok"
-    testCompile "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
 }
 
 wrapper {
