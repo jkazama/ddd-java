@@ -1,7 +1,7 @@
 plugins {
     id "java"
     id "eclipse"
-    id "org.springframework.boot" version "2.1.2.RELEASE"
+    id "org.springframework.boot" version "2.1.3.RELEASE"
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
 }
 
@@ -48,5 +48,5 @@ dependencies {
 }
 
 wrapper {
-    gradleVersion = "5.1.1"
+    gradleVersion = "5.2.1"
 }
