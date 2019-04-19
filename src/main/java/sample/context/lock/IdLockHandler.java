@@ -1,8 +1,7 @@
 package sample.context.lock;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.Callable;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.stereotype.Component;
@@ -20,7 +19,7 @@ import sample.InvocationException;
 @Component
 public class IdLockHandler {
 
-    private Map<Serializable, ReentrantReadWriteLock> lockMap = new HashMap<>();
+    private ConcurrentMap<Serializable, ReentrantReadWriteLock> lockMap = new ConcurrentHashMap<>();
 
     /** IDロック上で処理を実行します。 */
     public <T> T call(Serializable id, LockType lockType, final Callable<T> callable) {
@@ -52,25 +51,18 @@ public class IdLockHandler {
         if (id == null) {
             return;
         }
-        synchronized (lockMap) {
-            idLock(id).writeLock().lock();
-        }
+        idLock(id).writeLock().lock();
     }
 
     private ReentrantReadWriteLock idLock(final Serializable id) {
-        if (!lockMap.containsKey(id)) {
-            lockMap.put(id, new ReentrantReadWriteLock());
-        }
-        return lockMap.get(id);
+        return lockMap.computeIfAbsent(id, v -> new ReentrantReadWriteLock());
     }
 
     public void readLock(final Serializable id) {
         if (id == null) {
             return;
         }
-        synchronized (lockMap) {
-            idLock(id).readLock().lock();
-        }
+        idLock(id).readLock().lock();
     }
 
     public void unlock(final Serializable id) {
@@ -78,13 +70,11 @@ public class IdLockHandler {
             return;
         }
 
-        synchronized (lockMap) {
-            ReentrantReadWriteLock idLock = idLock(id);
-            if (idLock.isWriteLockedByCurrentThread()) {
-                idLock.writeLock().unlock();
-            } else {
-                idLock.readLock().unlock();
-            }
+        ReentrantReadWriteLock idLock = idLock(id);
+        if (idLock.isWriteLockedByCurrentThread()) {
+            idLock.writeLock().unlock();
+        } else {
+            idLock.readLock().unlock();
         }
     }
 
