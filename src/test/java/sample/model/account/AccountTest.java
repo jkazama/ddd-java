@@ -17,14 +17,12 @@ public class AccountTest extends EntityTestSupport {
     @Test
     public void loadActive() {
         tx(() -> {
-            // 通常時取得検証
             fixtures.acc("normal").save(rep);
             rep.flushAndClear(); // clear session cache
             assertThat(Account.loadActive(rep, "normal"), allOf(
                     hasProperty("id", is("normal")),
                     hasProperty("statusType", is(AccountStatusType.NORMAL))));
             
-            // 退会時取得検証
             Account withdrawal = fixtures.acc("withdraw");
             withdrawal.setStatusType(AccountStatusType.WITHDRAWAL);
             withdrawal.save(rep);

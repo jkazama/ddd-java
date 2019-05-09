@@ -6,9 +6,7 @@ import lombok.*;
 import sample.context.Dto;
 
 /**
- * ユースケースにおける利用者を表現します。
- * 
- * @author jkazama
+ * User in the use case.
  */
 @Data
 @NoArgsConstructor
@@ -17,22 +15,18 @@ public class Actor implements Dto {
 
     private static final long serialVersionUID = 1L;
 
-    /** 匿名利用者定数 */
+    /** Anonymous user */
     public static Actor Anonymous = new Actor("unknown", ActorRoleType.ANONYMOUS);
-    /** システム利用者定数 */
+    /** System user */
     public static Actor System = new Actor("system", ActorRoleType.SYSTEM);
 
-    /** 利用者ID */
     private String id;
-    /** 利用者名称 */
     private String name;
-    /** 利用者が持つ{@link ActorRoleType} */
     private ActorRoleType roleType;
-    /** 利用者が使用する{@link Locale} */
     private Locale locale;
-    /** 利用者の接続チャネル名称 */
+    /** Connection channel name of the actor */
     private String channel;
-    /** 利用者を特定する外部情報。(IPなど) */
+    /** Outside information to identify a actor. (including the IP) */
     private String source;
 
     public Actor(String id, ActorRoleType roleType) {
@@ -40,19 +34,18 @@ public class Actor implements Dto {
     }
 
     /**
-     * 利用者の役割を表現します。
-     * @author jkazama
+     * Role of the actor.
      */
     public static enum ActorRoleType {
-        /** 匿名利用者(ID等の特定情報を持たない利用者) */
+        /** Anonymous user. (the actor who does not have specific information such as the ID) */
         ANONYMOUS,
-        /** 利用者(主にBtoCの顧客, BtoB提供先社員) */
+        /** User (mainly customer of BtoC, staff of BtoB) */
         USER,
-        /** 内部利用者(主にBtoCの社員, BtoB提供元社員) */
+        /** Internal user (mainly staff of BtoC, staff manager of BtoB) */
         INTERNAL,
-        /** システム管理者(ITシステム担当社員またはシステム管理会社の社員) */
+        /** System administrator (an IT system charge staff or staff of the system management company) */
         ADMINISTRATOR,
-        /** システム(システム上の自動処理) */
+        /** System (automatic processing on the system) */
         SYSTEM;
 
         public boolean isAnonymous() {

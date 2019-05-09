@@ -6,13 +6,10 @@ import org.springframework.web.bind.annotation.*;
 import sample.usecase.*;
 
 /**
- * システムジョブのUI要求を処理します。
- * low: 通常はバッチプロセス(または社内プロセスに内包)を別途作成して、ジョブスケジューラから実行される方式になります。
- * ジョブの負荷がオンライン側へ影響を与えないよう事前段階の設計が重要になります。
- * low: 社内/バッチプロセス切り出す場合はVM分散時の情報/排他同期を意識する必要があります。(DB同期/メッセージング同期/分散製品の利用 等)
- * low: メソッドは全てPOSTが望ましいですが、デモ用で叩きやすいようにGETを許容しています。
- *
- * @author jkazama
+ * API controller of the system job.
+ * <p>the URL after "/system/job" assumes what is carried out from job scheduler,
+ * it is necessary to make it inaccessible from the outside in L/B.
+ * low: All methods should be POST, but for demonstration purposes, they allow GET.
  */
 @RestController
 @RequestMapping("/system/job")
@@ -28,19 +25,16 @@ public class JobController {
         this.master = master;
     }
 
-    /** 営業日を進めます。 */
     @RequestMapping(value = "/daily/processDay", method = { RequestMethod.POST, RequestMethod.GET })
     public void processDay() {
         master.processDay();
     }
 
-    /** 振込出金依頼を締めます。 */
     @RequestMapping(value = "/daily/closingCashOut", method = { RequestMethod.POST, RequestMethod.GET })
     public void closingCashOut() {
         asset.closingCashOut();
     }
 
-    /** キャッシュフローを実現します。 */
     @RequestMapping(value = "/daily/realizeCashflow", method = { RequestMethod.POST, RequestMethod.GET })
     public void realizeCashflow() {
         asset.realizeCashflow();

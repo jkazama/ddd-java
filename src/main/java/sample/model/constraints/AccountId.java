@@ -8,11 +8,6 @@ import java.lang.annotation.*;
 import javax.validation.*;
 import javax.validation.constraints.*;
 
-/**
- * 口座ID(必須)を表現する制約注釈。
- * 
- * @author jkazama
- */
 @Documented
 @Constraint(validatedBy = {})
 @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })

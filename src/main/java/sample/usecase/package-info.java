@@ -1,6 +1,6 @@
 /**
- * アプリケーション層のコンポーネントを管理します。
- * <p>UI層から呼び出され、ドメイン層のコンポーネントを利用してユースケース処理を実現します。
- * アプリケーション層のコンポーネントがUI層を呼び出す事やService同士で相互依存することは想定していません。
+ * Components of the application layer.
+ * <p>Called by the UI layer and realize use case processing using a component of the domain layer.
+ * It does not assume it that a component of the application layer calls the UI layer and to interdepend between Service.
  */
 package sample.usecase;

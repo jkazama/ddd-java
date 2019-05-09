@@ -6,9 +6,7 @@ import sample.context.actor.*;
 import sample.context.uid.IdGenerator;
 
 /**
- * ドメイン処理を行う上で必要となるインフラ層コンポーネントへのアクセサを提供します。
- * 
- * @author jkazama
+ * The access to the domain infrastructure layer component which is necessary in handling it.
  */
 @Component
 public class DomainHelper {
@@ -26,30 +24,20 @@ public class DomainHelper {
         this.uid = uid;
     }
 
-    /**
-     * @return ログイン中のユースケース利用者
-     */
+    /** Return a login user. */
     public Actor actor() {
         return actorSession.actor();
     }
 
-    /**
-     * @return ログインセッション情報
-     */
+    /** Return the user session of the thread local scope. */
     public ActorSession actorSession() {
         return actorSession;
     }
 
-    /**
-     * @return 日時ユーティリティ
-     */
     public Timestamper time() {
         return time;
     }
 
-    /**
-     * @return ID生成ユーティリティ
-     */
     public IdGenerator uid() {
         return uid;
     }

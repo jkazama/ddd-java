@@ -13,9 +13,7 @@ import sample.model.constraints.Currency;
 import sample.util.*;
 
 /**
- * 口座残高を表現します。
- * 
- * @author jkazama
+ * The account balance.
  */
 @Entity
 @Data
@@ -29,29 +27,23 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
 
     private static final long serialVersionUID = 1L;
 
-    /** ID */
     @Id
     @GeneratedValue
     private Long id;
-    /** 口座ID */
     @AccountId
     private String accountId;
-    /** 基準日 */
     @Day
     private String baseDay;
-    /** 通貨 */
     @Currency
     private String currency;
-    /** 金額 */
     @Amount
     private BigDecimal amount;
-    /** 更新日 */
     @NotNull
     private Date updateDate;
 
     /**
-     * 残高へ指定した金額を反映します。
-     * low ここではCurrencyを使っていますが、実際の通貨桁数や端数処理定義はDBや設定ファイル等で管理されます。
+     * low: Use Currency here, but the real number of the currency figures and fraction processing definition
+     *  are managed with DB or the configuration file.
      */
     public CashBalance add(final JpaRepository rep, BigDecimal addAmount) {
         int scale = java.util.Currency.getInstance(currency).getDefaultFractionDigits();
@@ -61,8 +53,9 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
     }
 
     /**
-     * 指定口座の残高を取得します。(存在しない時は繰越保存後に取得します)
-     * low: 複数通貨の適切な考慮や細かい審査は本筋でないので割愛。
+     * Acquire the balance of the designated account.
+     * (when I do not exist, acquire it after carrying forward preservation)
+     * low: The appropriate consideration and examination of plural currencies are omitted.
      */
     public static CashBalance getOrNew(final JpaRepository rep, String accountId, String currency) {
         String baseDay = rep.dh().time().day();
@@ -79,7 +72,7 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
         List<CashBalance> list = rep.tmpl().find("CashBalance.findAcc", accountId, currency);
         if (list.isEmpty()) {
             return new CashBalance(null, accountId, now.getDay(), currency, BigDecimal.ZERO, now.getDate()).save(rep);
-        } else { // 残高繰越
+        } else {    // roll over
             CashBalance prev = list.get(0);
             return new CashBalance(null, accountId, now.getDay(), currency, prev.getAmount(), now.getDate()).save(rep);
         }

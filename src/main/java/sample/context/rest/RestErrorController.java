@@ -7,11 +7,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.ServletWebRequest;
 
 /**
- * REST用の例外ハンドリングを行うController。
- * <p>application.ymlの"error.path"属性との組合せで有効化します。
- * あわせて"error.whitelabel.enabled: false"でwhitelabelを無効化しておく必要があります。
- * 
- * @author jkazama
+ * Controller which performs exception handling for RestController.
+ * <p>Enable it in combination with "error.path" attribute of application.yml.
+ * It is necessary to destroy whitelabel in total. "error.whitelabel.enabled: false"
+ * <p>see ErrorMvcAutoConfiguration
  */
 @RestController
 public class RestErrorController implements ErrorController {

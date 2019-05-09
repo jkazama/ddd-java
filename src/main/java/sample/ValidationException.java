@@ -8,9 +8,12 @@ import lombok.Value;
 import org.springframework.util.Assert;
 
 /**
- * 審査例外を表現します。
- * 
- * @author jkazama
+ * Application's validation exception.
+ * <p>ValidationException is the examination exceptions that can restore
+ * such as an input exception or the in condition transition exception.
+ * The output in the log is performed at WARN level.
+ * <p>The examination exception can hold a plural number in global / field scope.
+ * When you handle the exception of plural matters, please initialize it using Warns.
  */
 public class ValidationException extends RuntimeException {
 
@@ -18,48 +21,30 @@ public class ValidationException extends RuntimeException {
 
     private final Warns warns;
 
-    /**
-     * フィールドに従属しないグローバルな審査例外を通知するケースで利用してください。
-     * @param message
-     */
+    /** A global examination exception. */
     public ValidationException(String message) {
         super(message);
         warns = Warns.init(message);
     }
 
-    /**
-     * フィールドに従属する審査例外を通知するケースで利用してください。
-     * @param field
-     * @param message
-     */
+    /** A field examination exception. */
     public ValidationException(String field, String message) {
         super(message);
         warns = Warns.init(field, message);
     }
 
-    /**
-     * フィールドに従属する審査例外を通知するケースで利用してください。
-     * @param field
-     * @param message
-     * @param messageArgs
-     */
+    /** A field examination exception. */
     public ValidationException(String field, String message, String[] messageArgs) {
         super(message);
         warns = Warns.init(field, message, messageArgs);
     }
 
-    /**
-     * 複数件の審査例外を通知するケースで利用してください。
-     * @param warns
-     */
+    /** The examination exception of plural matters. */
     public ValidationException(final Warns warns) {
         super(warns.head().getMessage());
         this.warns = warns;
     }
 
-    /**
-     * @return 発生した審査例外一覧を返します。
-     */
     public List<Warn> list() {
         return warns.list();
     }
@@ -69,7 +54,7 @@ public class ValidationException extends RuntimeException {
         return warns.head().getMessage();
     }
 
-    /** 審査例外情報  */
+    /** Examination exception information. */
     public static class Warns implements Serializable {
         private static final long serialVersionUID = 1L;
         private List<Warn> list = new ArrayList<>();
@@ -123,9 +108,7 @@ public class ValidationException extends RuntimeException {
 
     }
 
-    /**
-     * フィールドスコープの審査例外トークン。
-     */
+    /** Examination exception of the field scope. */
     @Value
     public static class Warn implements Serializable {
         private static final long serialVersionUID = 1L;
@@ -133,9 +116,6 @@ public class ValidationException extends RuntimeException {
         private String message;
         private String[] messageArgs;
 
-        /**
-         * @return フィールドに従属しないグローバル例外時はtrue
-         */
         public boolean global() {
             return field == null;
         }

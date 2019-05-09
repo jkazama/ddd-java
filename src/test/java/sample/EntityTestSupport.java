@@ -25,8 +25,8 @@ import sample.model.DataFixtures;
 import sample.support.MockDomainHelper;
 
 /**
- * Spring コンテナを用いない JPA のみに特化した検証用途。
- * <p>model パッケージでのみ利用してください。
+ * this component is specialized only in JPA which did not use Spring container.
+ * <p>Use it only with model package.
  */
 public class EntityTestSupport {
     protected Timestamper time;
@@ -38,7 +38,7 @@ public class EntityTestSupport {
     protected PlatformTransactionManager txm;
     protected DataFixtures fixtures;
 
-    /** テスト対象とするEntityクラス一覧 */
+    /** List of Entity classes to be targeted for a test */
     private List<Class<?>> targetEntities = new ArrayList<>();
 
     @Before
@@ -53,18 +53,19 @@ public class EntityTestSupport {
         before();
     }
 
-    /** 設定事前処理。repインスタンス生成前 */
+    /** It is before rep instance create */
     protected void setupPreset() {
-        // 各Entity検証で上書きしてください
+        // Override entity test class.
     }
 
-    /** 事前処理。repインスタンス生成後 */
+    /** After rep instance created */
     protected void before() {
-        // 各Entity検証で上書きしてください
+        // Override entity test class.
     }
 
     /**
-     * {@link #setupPreset()}内で対象Entityを指定してください。
+     * Set target Entity in {@link #setupPreset()}.
+     * (it is necessary to set targetPackage or this)
      */
     protected void targetEntities(Class<?>... list) {
         if (list != null) {
@@ -73,7 +74,7 @@ public class EntityTestSupport {
     }
 
     /**
-     * {@link #before()}内でモック設定値を指定してください。
+     * Set a mock setting value in {@link #before()}.
      */
     protected void setting(String id, String value) {
         dh.setting(id, value);
@@ -111,7 +112,6 @@ public class EntityTestSupport {
         txm = new JpaTransactionManager(emf);
     }
 
-    /** トランザクション処理を行います。 */
     protected <T> T tx(Supplier<T> callable) {
         return new TransactionTemplate(txm).execute((status) -> {
             T ret = callable.get();
@@ -130,7 +130,6 @@ public class EntityTestSupport {
         });
     }
 
-    // 簡易コンポーネントFactory
     public static class EntityTestFactory {
         private static Optional<DataSource> ds = Optional.empty();
 

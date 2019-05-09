@@ -8,12 +8,6 @@ import java.lang.annotation.*;
 import javax.validation.*;
 import javax.validation.constraints.*;
 
-/**
- * 日付(必須)を表現する制約注釈。
- * <p>yyyyMMddの8桁文字列を想定します。
- * 
- * @author jkazama
- */
 @Documented
 @Constraint(validatedBy = {})
 @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })

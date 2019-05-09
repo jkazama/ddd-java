@@ -10,7 +10,7 @@ import org.junit.Test;
 import sample.EntityTestSupport;
 import sample.model.account.Account;
 
-//low: 簡易な検証が中心
+//low: Minimum test.
 public class AssetTest extends EntityTestSupport {
 
     @Override
@@ -21,7 +21,6 @@ public class AssetTest extends EntityTestSupport {
     @Test
     public void canWithdraw() {
         tx(() -> {
-            // 残高   +  未実現キャッシュフロー - 出金依頼拘束額 = 出金可能額 
             // 10000 + (1000 - 2000) - 8000 = 1000
             fixtures.acc("test").save(rep);
             fixtures.cb("test", "20141118", "JPY", "10000").save(rep);

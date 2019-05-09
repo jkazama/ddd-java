@@ -9,11 +9,7 @@ import javax.validation.*;
 import javax.validation.constraints.*;
 
 /**
- * メールアドレス(必須)を表現する制約注釈。
- * low: ちゃんとやると大変なので未実装です。HibernateのEmailValidatorを利用しても良いですが、
- * 恐らく最終的に固有のConstraintValidatorを作らされる事になると思います。
- * 
- * @author jkazama
+ * low: Please make it.
  */
 @Documented
 @Constraint(validatedBy = {})

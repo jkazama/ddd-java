@@ -4,9 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * アプリケーションプロセスの起動クラス。
- * 
- * @author jkazama
+ * The start class of the application.
  */
 @SpringBootApplication
 public class Application {

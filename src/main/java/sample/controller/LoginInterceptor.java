@@ -8,10 +8,8 @@ import sample.context.actor.*;
 import sample.context.actor.Actor.ActorRoleType;
 
 /**
- * スレッドローカルに利用者を紐付けるAOPInterceptor。
- * low: 今回は認証機能を用意していないのでダミーです。
- * 
- * @author jkazama
+ * AOPInterceptor relates a login user with thread local.
+ * low: It is a dummy because no authentication function is provided.
  */
 @Aspect
 @Component

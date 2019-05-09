@@ -3,7 +3,7 @@ package sample.util;
 import java.text.*;
 import java.util.*;
 
-//low: サンプル用のサポートUtils。実際のプロジェクトではcommons-lang等のライブラリを利用してください。
+//low: Support Utils for sample. Please use libraries such as commons-lang in actual projects.
 public abstract class DateUtils {
 
     public static Date date(String day) {

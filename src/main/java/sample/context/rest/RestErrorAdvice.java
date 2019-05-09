@@ -17,10 +17,8 @@ import sample.ValidationException;
 import sample.ValidationException.*;
 
 /**
- * REST用の例外Map変換サポート。
- * <p>AOPアドバイスで全てのRestControllerに対して例外処理を当て込みます。
- * 
- * @author jkazama
+ * Exception Map conversion support for RestController.
+ * <p>Insert an exception handling by AOP advice.
  */
 @ControllerAdvice(annotations = RestController.class)
 @Slf4j
@@ -70,7 +68,6 @@ public class RestErrorAdvice {
             if (1 == oe.getCodes().length) {
                 field = bindField(oe.getCodes()[0]);
             } else if (1 < oe.getCodes().length) {
-                // low: プリフィックスは冗長なので外してます
                 field = bindField(oe.getCodes()[1]);
             }
             List<String> args = new ArrayList<String>();
@@ -104,12 +101,17 @@ public class RestErrorAdvice {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String[]>> handleException(Exception e) {
-        log.error("予期せぬ例外が発生しました。", e);
-        return new ErrorHolder(msg, "error.Exception", "サーバー側で問題が発生した可能性があります。")
+        log.error("An unexpected exception occurred.", e);
+        return new ErrorHolder(msg, "error.Exception", "A problem might occur in a server side.")
                 .result(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    /** 例外情報のスタックを表現します。 */
+    /**
+     * The stack of the exception information.
+     * <p> can convert the exception information that I stacked into ResponseEntity having Map by calling {@link #result(HttpStatus)}.
+     * <p>The key when You registered in {@link #errorGlobal} becomes the null.
+     * <p>The client-side receives a return value in [{"fieldA": "messageA"}, {"fieldB": "messageB"}].
+     */
     public static class ErrorHolder {
         private Map<String, List<String>> errors = new HashMap<String, List<String>>();
         private MessageSource msg;

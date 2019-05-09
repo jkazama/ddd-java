@@ -8,9 +8,7 @@ import sample.context.audit.AuditHandler;
 import sample.context.orm.JpaRepository.DefaultRepository;
 
 /**
- * サービスマスタドメインに対する社内ユースケース処理。
- * 
- * @author jkazama
+ * The use case processing for the master domain in the organization.
  */
 @Service
 public class MasterAdminService {
@@ -28,12 +26,8 @@ public class MasterAdminService {
         this.audit = audit;
     }
 
-    /**
-     * 営業日を進めます。
-     * low: 実際はスレッドセーフの考慮やDB連携含めて、色々とちゃんと作らないとダメです。
-     */
     public void processDay() {
-        audit.audit("営業日を進める", () -> {
+        audit.audit("Forward day.", () -> {
             Timestamper time = rep.dh().time();
             time.daySet(time.dayPlus(1));
         });

@@ -3,11 +3,6 @@ package sample.context;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
 
-/**
- * 保有するオブジェクトを単純に返す ObjectProvider。
- * 
- * @author jkazama
- */
 public class SimpleObjectProvider<T> implements ObjectProvider<T> {
 
     private final T target;

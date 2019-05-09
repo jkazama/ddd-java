@@ -11,9 +11,7 @@ import sample.model.asset.CashInOut.FindCashInOut;
 import sample.usecase.AssetAdminService;
 
 /**
- * 資産に関わる社内のUI要求を処理します。
- *
- * @author jkazama
+ * API controller of the asset domain in the organization.
  */
 @RestController
 @RequestMapping("/admin/asset")
@@ -25,7 +23,6 @@ public class AssetAdminController {
         this.service = service;
     }
 
-    /** 未処理の振込依頼情報を検索します。 */
     @GetMapping("/cio")
     public List<CashInOut> findCashInOut(@Valid FindCashInOut p) {
         return service.findCashInOut(p);

@@ -1,5 +1,6 @@
 /**
- * インフラ層のコンポーネントを管理します。
- * <p>インフラ層のコンポーネントはUI層/アプリケーション層/ドメイン層から横断的に利用されます。
+ * A component of the infrastructure layer.
+ * <p>The component of the infrastructure layer is used transversely
+ *  from the UI layer / application layer / domain layer.
  */
 package sample.context;

@@ -10,7 +10,7 @@ import org.junit.Test;
 public class CalculatorTest {
 
     @Test
-    public void 単純な四則演算検証() {
+    public void calculation() {
 
         // (10 + 2 - 4) * 4 / 8 = 4
         assertThat(
@@ -24,7 +24,7 @@ public class CalculatorTest {
     }
 
     @Test
-    public void 累積端数処理の検証() {
+    public void roundingAlways() {
 
         // 3.333 -> 3.334 -> 3.335 (= 3.34)
         assertThat(

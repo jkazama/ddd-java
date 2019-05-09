@@ -8,12 +8,6 @@ import java.lang.annotation.*;
 import javax.validation.*;
 import javax.validation.constraints.*;
 
-/**
- * 名称(必須)を表現する制約注釈。
- * low: 実際は姓名(ミドルネーム)の考慮やモノ系の名称などを意識する必要があります。
- * 
- * @author jkazama
- */
 @Documented
 @Constraint(validatedBy = {})
 @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
