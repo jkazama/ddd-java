@@ -1,13 +1,13 @@
 plugins {
     id "java"
     id "eclipse"
-    id "org.springframework.boot" version "2.1.4.RELEASE"
+    id "org.springframework.boot" version "2.1.5.RELEASE"
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
 }
 
-ext['lombok.version'] = "1.18.4"
+ext['lombok.version'] = "1.18.8"
 
-version = "2.1.4"
+version = "2.1.5"
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -48,5 +48,5 @@ dependencies {
 }
 
 wrapper {
-    gradleVersion = "5.3.1"
+    gradleVersion = "5.4.1"
 }
