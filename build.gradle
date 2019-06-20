@@ -1,13 +1,13 @@
 plugins {
     id "java"
     id "eclipse"
-    id "org.springframework.boot" version "2.1.5.RELEASE"
+    id "org.springframework.boot" version "2.1.6.RELEASE"
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
 }
 
 ext['lombok.version'] = "1.18.8"
 
-version = "2.1.5"
+version = "2.1.6"
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
