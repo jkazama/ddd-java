@@ -14,7 +14,7 @@ import sample.model.asset.Cashflow.CashflowType;
 import sample.model.master.SelfFiAccount;
 import sample.util.DateUtils;
 
-//low: 簡易な正常系検証が中心。依存するCashflow/CashBalanceの単体検証パスを前提。
+// low: 簡易な正常系検証が中心。依存するCashflow/CashBalanceの単体検証パスを前提。
 public class CashInOutTest extends EntityTestSupport {
 
     private static final String ccy = "JPY";
@@ -43,7 +43,7 @@ public class CashInOutTest extends EntityTestSupport {
             CashInOut cio = fixtures.cio(accId, "300", true);
             cio.setUpdateDate(DateUtils.date("20141118"));
             cio.save(rep);
-            //low: ちゃんとやると大変なので最低限の検証
+            // low: ちゃんとやると大変なので最低限の検証
             assertThat(
                     CashInOut.find(rep, findParam("20141118", "20141119")),
                     hasSize(1));
@@ -64,7 +64,6 @@ public class CashInOutTest extends EntityTestSupport {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void withdrawal() {
         tx(() -> {
             // 超過の出金依頼 [例外]
@@ -149,7 +148,6 @@ public class CashInOutTest extends EntityTestSupport {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void process() {
         tx(() -> {
             // 発生日未到来の処理 [例外]
