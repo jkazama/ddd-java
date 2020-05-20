@@ -1,15 +1,15 @@
 package sample.model.account;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import org.junit.*;
+import org.junit.Test;
 
 import sample.*;
 import sample.model.account.Account.AccountStatusType;
 
 public class AccountTest extends EntityTestSupport {
 
+    @Override
     protected void setupPreset() {
         targetEntities(Account.class);
     }
@@ -20,10 +20,10 @@ public class AccountTest extends EntityTestSupport {
             // 通常時取得検証
             fixtures.acc("normal").save(rep);
             rep.flushAndClear(); // clear session cache
-            assertThat(Account.loadActive(rep, "normal"), allOf(
-                    hasProperty("id", is("normal")),
-                    hasProperty("statusType", is(AccountStatusType.NORMAL))));
-            
+            Account account = Account.loadActive(rep, "normal");
+            assertEquals("normal", account.getId());
+            assertEquals(AccountStatusType.NORMAL, account.getStatusType());
+
             // 退会時取得検証
             Account withdrawal = fixtures.acc("withdraw");
             withdrawal.setStatusType(AccountStatusType.WITHDRAWAL);
@@ -32,7 +32,7 @@ public class AccountTest extends EntityTestSupport {
             try {
                 Account.loadActive(rep, "withdraw");
             } catch (ValidationException e) {
-                assertThat(e.getMessage(), is("error.Account.loadActive"));
+                assertEquals("error.Account.loadActive", e.getMessage());
             }
         });
     }

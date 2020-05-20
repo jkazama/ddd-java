@@ -1,6 +1,5 @@
 package sample.model.asset;
 
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
@@ -44,18 +43,16 @@ public class CashInOutTest extends EntityTestSupport {
             cio.setUpdateDate(DateUtils.date("20141118"));
             cio.save(rep);
             // low: ちゃんとやると大変なので最低限の検証
-            assertThat(
-                    CashInOut.find(rep, findParam("20141118", "20141119")),
-                    hasSize(1));
-            assertThat(
-                    CashInOut.find(rep, findParam("20141118", "20141119", ActionStatusType.UNPROCESSED)),
-                    hasSize(1));
-            assertThat(
-                    CashInOut.find(rep, findParam("20141118", "20141119", ActionStatusType.PROCESSED)),
-                    empty());
-            assertThat(
-                    CashInOut.find(rep, findParam("20141119", "20141120", ActionStatusType.UNPROCESSED)),
-                    empty());
+            assertEquals(
+                    1,
+                    CashInOut.find(rep, findParam("20141118", "20141119")).size());
+            assertEquals(
+                    1,
+                    CashInOut.find(rep, findParam("20141118", "20141119", ActionStatusType.UNPROCESSED)).size());
+            assertTrue(
+                    CashInOut.find(rep, findParam("20141118", "20141119", ActionStatusType.PROCESSED)).isEmpty());
+            assertTrue(
+                    CashInOut.find(rep, findParam("20141119", "20141120", ActionStatusType.UNPROCESSED)).isEmpty());
         });
     }
 
@@ -71,7 +68,7 @@ public class CashInOutTest extends EntityTestSupport {
                 CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("1001")));
                 fail();
             } catch (ValidationException e) {
-                assertThat(e.getMessage(), is("error.CashInOut.withdrawAmount"));
+                assertEquals("error.CashInOut.withdrawAmount", e.getMessage());
             }
 
             // 0円出金の出金依頼 [例外]
@@ -79,29 +76,31 @@ public class CashInOutTest extends EntityTestSupport {
                 CashInOut.withdraw(rep, new RegCashOut(accId, ccy, BigDecimal.ZERO));
                 fail();
             } catch (ValidationException e) {
-                assertThat(e.getMessage(), is("error.domain.AbsAmount.zero"));
+                assertEquals("error.domain.AbsAmount.zero", e.getMessage());
             }
 
             // 通常の出金依頼
             CashInOut normal = CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("300")));
-            assertThat(normal, allOf(
-                    hasProperty("accountId", is(accId)), hasProperty("currency", is(ccy)),
-                    hasProperty("absAmount", is(new BigDecimal(300))), hasProperty("withdrawal", is(true)),
-                    hasProperty("requestDate", hasProperty("day", is(baseDay))),
-                    hasProperty("eventDay", is(baseDay)), hasProperty("valueDay", is("20141121")),
-                    hasProperty("targetFiCode", is(Remarks.CashOut + "-" + ccy)),
-                    hasProperty("targetFiAccountId", is("FI" + accId)),
-                    hasProperty("selfFiCode", is(Remarks.CashOut + "-" + ccy)),
-                    hasProperty("selfFiAccountId", is("xxxxxx")),
-                    hasProperty("statusType", is(ActionStatusType.UNPROCESSED)),
-                    hasProperty("cashflowId", is(nullValue()))));
+            assertEquals(accId, normal.getAccountId());
+            assertEquals(ccy, normal.getCurrency());
+            assertEquals(new BigDecimal("300"), normal.getAbsAmount());
+            assertTrue(normal.isWithdrawal());
+            assertEquals(baseDay, normal.getRequestDate().getDay());
+            assertEquals(baseDay, normal.getEventDay());
+            assertEquals("20141121", normal.getValueDay());
+            assertEquals(Remarks.CashOut + "-" + ccy, normal.getTargetFiCode());
+            assertEquals("FI" + accId, normal.getTargetFiAccountId());
+            assertEquals(Remarks.CashOut + "-" + ccy, normal.getSelfFiCode());
+            assertEquals("xxxxxx", normal.getSelfFiAccountId());
+            assertEquals(ActionStatusType.UNPROCESSED, normal.getStatusType());
+            assertNull(normal.getCashflowId());
 
             // 拘束額を考慮した出金依頼 [例外]
             try {
                 CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("701")));
                 fail();
             } catch (ValidationException e) {
-                assertThat(e.getMessage(), is("error.CashInOut.withdrawAmount"));
+                assertEquals("error.CashInOut.withdrawAmount", e.getMessage());
             }
         });
     }
@@ -111,7 +110,7 @@ public class CashInOutTest extends EntityTestSupport {
         tx(() -> {
             // CF未発生の依頼を取消
             CashInOut normal = fixtures.cio(accId, "300", true).save(rep);
-            assertThat(normal.cancel(rep), hasProperty("statusType", is(ActionStatusType.CANCELLED)));
+            assertEquals(ActionStatusType.CANCELLED, normal.cancel(rep).getStatusType());
 
             // 発生日を迎えた場合は取消できない [例外]
             CashInOut today = fixtures.cio(accId, "300", true);
@@ -122,7 +121,7 @@ public class CashInOutTest extends EntityTestSupport {
                 today.cancel(rep);
                 fail();
             } catch (ValidationException e) {
-                assertThat(e.getMessage(), is("error.CashInOut.beforeEqualsDay"));
+                assertEquals("error.CashInOut.beforeEqualsDay", e.getMessage());
             }
         });
     }
@@ -131,7 +130,7 @@ public class CashInOutTest extends EntityTestSupport {
     public void error() {
         tx(() -> {
             CashInOut normal = fixtures.cio(accId, "300", true).save(rep);
-            assertThat(normal.error(rep), hasProperty("statusType", is(ActionStatusType.ERROR)));
+            assertEquals(ActionStatusType.ERROR, normal.error(rep).getStatusType());
 
             // 処理済の時はエラーにできない [例外]
             CashInOut today = fixtures.cio(accId, "300", true);
@@ -142,7 +141,7 @@ public class CashInOutTest extends EntityTestSupport {
                 today.error(rep);
                 fail();
             } catch (ValidationException e) {
-                assertThat(e.getMessage(), is("error.ActionStatusType.unprocessing"));
+                assertEquals("error.ActionStatusType.unprocessing", e.getMessage());
             }
         });
     }
@@ -156,26 +155,27 @@ public class CashInOutTest extends EntityTestSupport {
                 future.process(rep);
                 fail();
             } catch (ValidationException e) {
-                assertThat(e.getMessage(), is("error.CashInOut.afterEqualsDay"));
+                assertEquals("error.CashInOut.afterEqualsDay", e.getMessage());
             }
 
             // 発生日到来処理
             CashInOut normal = fixtures.cio(accId, "300", true);
             normal.setEventDay("20141118");
             normal.save(rep);
-            assertThat(normal.process(rep), allOf(
-                    hasProperty("statusType", is(ActionStatusType.PROCESSED)),
-                    hasProperty("cashflowId", not(nullValue()))));
+            CashInOut processed = normal.process(rep);
+            assertEquals(ActionStatusType.PROCESSED, processed.getStatusType());
+            assertNotNull(processed.getCashflowId());
+
             // 発生させたキャッシュフローの検証
-            assertThat(Cashflow.load(rep, normal.getCashflowId()), allOf(
-                    hasProperty("accountId", is(accId)),
-                    hasProperty("currency", is(ccy)),
-                    hasProperty("amount", is(new BigDecimal("-300"))),
-                    hasProperty("cashflowType", is(CashflowType.CashOut)),
-                    hasProperty("remark", is(Remarks.CashOut)),
-                    hasProperty("eventDate", hasProperty("day", is("20141118"))),
-                    hasProperty("valueDay", is("20141121")),
-                    hasProperty("statusType", is(ActionStatusType.UNPROCESSED))));
+            Cashflow cf = Cashflow.load(rep, normal.getCashflowId());
+            assertEquals(accId, cf.getAccountId());
+            assertEquals(ccy, cf.getCurrency());
+            assertEquals(new BigDecimal("-300"), cf.getAmount());
+            assertEquals(CashflowType.CashOut, cf.getCashflowType());
+            assertEquals(Remarks.CashOut, cf.getRemark());
+            assertEquals("20141118", cf.getEventDate().getDay());
+            assertEquals("20141121", cf.getValueDay());
+            assertEquals(ActionStatusType.UNPROCESSED, cf.getStatusType());
         });
     }
 

@@ -1,13 +1,13 @@
 plugins {
     id "java"
     id "eclipse"
-    id "org.springframework.boot" version "2.2.5.RELEASE"
+    id "org.springframework.boot" version "2.3.0.RELEASE"
     id "io.spring.dependency-management" version "1.0.9.RELEASE"
 }
 
 ext['lombok.version'] = "1.18.12"
 
-version = "2.2.5"
+version = "2.3.0"
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -39,6 +39,7 @@ dependencies {
     compileOnly "org.projectlombok:lombok"
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
     implementation "org.springframework.boot:spring-boot-starter-aop"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     runtime "com.h2database:h2"
@@ -48,5 +49,5 @@ dependencies {
 }
 
 wrapper {
-    gradleVersion = "6.2.1"
+    gradleVersion = "6.4.1"
 }
