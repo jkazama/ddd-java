@@ -7,7 +7,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.hibernate.cfg.AvailableSettings;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder.Builder;
 import org.springframework.orm.jpa.*;
@@ -41,7 +41,7 @@ public class EntityTestSupport {
     /** テスト対象とするEntityクラス一覧 */
     private List<Class<?>> targetEntities = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public final void setup() {
         setupPreset();
         dh = new MockDomainHelper();
@@ -79,7 +79,7 @@ public class EntityTestSupport {
         dh.setting(id, value);
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         emf.close();
     }
