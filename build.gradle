@@ -1,16 +1,16 @@
 plugins {
     id "java"
     id "eclipse"
-    id "org.springframework.boot" version "2.4.0"
-    id "io.spring.dependency-management" version "1.0.10.RELEASE"
+    id "org.springframework.boot" version "2.5.0"
+    id "io.spring.dependency-management" version "1.0.11.RELEASE"
 }
 
-ext['lombok.version'] = "1.18.16"
+ext['lombok.version'] = "1.18.20"
 
-version = "2.4.0"
+version = "2.5.0"
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+sourceCompatibility = '11'
+targetCompatibility = '11'
 
 def defaultEncoding = 'UTF-8'
 tasks.withType(AbstractCompile).each { it.options.encoding = defaultEncoding }
@@ -25,7 +25,7 @@ test {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 eclipseJdt.doLast {
@@ -49,5 +49,5 @@ dependencies {
 }
 
 wrapper {
-    gradleVersion = "6.7"
+    gradleVersion = "7.0.2"
 }
