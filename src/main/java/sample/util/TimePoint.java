@@ -2,14 +2,16 @@ package sample.util;
 
 import java.util.Date;
 
-import javax.validation.constraints.NotNull;
-
-import lombok.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import sample.model.constraints.Day;
 
 /**
  * 日付と日時のペアを表現します。
- * <p>0:00に営業日切り替えが行われないケースなどでの利用を想定しています。
+ * <p>
+ * 0:00に営業日切り替えが行われないケースなどでの利用を想定しています。
  * 
  * @author jkazama
  */

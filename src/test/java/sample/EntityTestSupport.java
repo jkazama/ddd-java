@@ -1,24 +1,34 @@
 package sample;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.hibernate.cfg.AvailableSettings;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder.Builder;
-import org.springframework.orm.jpa.*;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.SharedEntityManagerCreator;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.zaxxer.hikari.*;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
-import sample.context.*;
-import sample.context.actor.ActorSession;
+import jakarta.persistence.EntityManagerFactory;
+import sample.context.DomainEntity;
+import sample.context.SimpleObjectProvider;
+import sample.context.Timestamper;
 import sample.context.orm.JpaRepository.DefaultRepository;
 import sample.context.uid.IdGenerator;
 import sample.model.DataFixtures;
@@ -26,11 +36,11 @@ import sample.support.MockDomainHelper;
 
 /**
  * Spring コンテナを用いない JPA のみに特化した検証用途。
- * <p>model パッケージでのみ利用してください。
+ * <p>
+ * model パッケージでのみ利用してください。
  */
 public class EntityTestSupport {
     protected Timestamper time;
-    protected ActorSession session;
     protected IdGenerator uid;
     protected MockDomainHelper dh;
     protected EntityManagerFactory emf;
@@ -46,7 +56,6 @@ public class EntityTestSupport {
         setupPreset();
         dh = new MockDomainHelper();
         time = dh.time();
-        session = dh.actorSession();
         uid = dh.uid();
         setupRepository();
         setupDataFixtures();
@@ -115,7 +124,7 @@ public class EntityTestSupport {
     protected <T> T tx(Supplier<T> callable) {
         return new TransactionTemplate(txm).execute((status) -> {
             T ret = callable.get();
-            if (ret instanceof Entity) {
+            if (ret instanceof DomainEntity) {
                 ret.hashCode(); // for lazy loading
             }
             return ret;

@@ -2,16 +2,26 @@ package sample.model.account;
 
 import java.util.List;
 
-import javax.persistence.*;
-
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedQuery;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import sample.ValidationException;
-import sample.context.orm.*;
-import sample.model.constraints.*;
+import sample.context.orm.JpaActiveRecord;
+import sample.context.orm.JpaRepository;
+import sample.model.constraints.AccountId;
+import sample.model.constraints.Category;
+import sample.model.constraints.Currency;
+import sample.model.constraints.IdStr;
 
 /**
  * 口座に紐づく金融機関口座を表現します。
- * <p>口座を相手方とする入出金で利用します。
+ * <p>
+ * 口座を相手方とする入出金で利用します。
  * low: サンプルなので支店や名称、名義といった本来必須な情報をかなり省略しています。(通常は全銀仕様を踏襲します)
  * 
  * @author jkazama

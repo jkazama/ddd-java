@@ -3,22 +3,24 @@ package sample.context.orm;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.persistence.*;
-
-import lombok.Setter;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import sample.context.*;
-import sample.context.Entity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import lombok.Setter;
+import sample.context.DomainEntity;
+import sample.context.DomainHelper;
+import sample.context.Repository;
 
 /**
  * JPAのRepository基底実装。
- * <p>Springが提供するJpaRepositoryとは役割が異なる点に注意してください。
+ * <p>
+ * Springが提供するJpaRepositoryとは役割が異なる点に注意してください。
  * 本コンポーネントはRepositoryとEntityの1-n関係を実現するためにSpringDataの基盤を
  * 利用しない形で単純なJPA実装を提供します。
- * <p>JpaRepositoryを継承して作成されるRepositoryの粒度はデータソース単位となります。
+ * <p>
+ * JpaRepositoryを継承して作成されるRepositoryの粒度はデータソース単位となります。
  * 
  * @author jkazama
  */
@@ -30,15 +32,18 @@ public abstract class JpaRepository implements Repository {
 
     /**
      * 管理するEntityManagerを返します。
-     * <p>継承先で管理したいデータソースのEntityManagerを返してください。
+     * <p>
+     * 継承先で管理したいデータソースのEntityManagerを返してください。
      */
     public abstract EntityManager em();
 
-    public <T extends Entity> JpaCriteria<T> criteria(Class<T> clazz) {
+    public <T extends DomainEntity> JpaCriteria<T> criteria(Class<T> clazz) {
         return new JpaCriteria<T>(clazz, em().getCriteriaBuilder());
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see sample.context.Repository#dh()
      */
     @Override
@@ -48,64 +53,66 @@ public abstract class JpaRepository implements Repository {
 
     /**
      * JPA操作の簡易アクセサを生成します。
-     * <p>JpaTemplateは呼出しの都度生成されます。
+     * <p>
+     * JpaTemplateは呼出しの都度生成されます。
      */
     public JpaTemplate tmpl() {
         return new JpaTemplate(em());
     }
 
     @Override
-    public <T extends Entity> T get(Class<T> clazz, Serializable id) {
+    public <T extends DomainEntity> T get(Class<T> clazz, Serializable id) {
         return em().find(clazz, id);
     }
 
     @Override
-    public <T extends Entity> T load(Class<T> clazz, Serializable id) {
+    public <T extends DomainEntity> T load(Class<T> clazz, Serializable id) {
         return em().getReference(clazz, id);
     }
 
     @Override
-    public <T extends Entity> boolean exists(Class<T> clazz, Serializable id) {
+    public <T extends DomainEntity> boolean exists(Class<T> clazz, Serializable id) {
         return get(clazz, id) != null;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Entity> T getOne(Class<T> clazz) {
+    public <T extends DomainEntity> T getOne(Class<T> clazz) {
         return (T) em().createQuery("from " + clazz.getSimpleName()).getSingleResult();
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Entity> List<T> findAll(Class<T> clazz) {
+    public <T extends DomainEntity> List<T> findAll(Class<T> clazz) {
         return em().createQuery("from " + clazz.getSimpleName()).getResultList();
     }
 
     @Override
-    public <T extends Entity> T save(T entity) {
+    public <T extends DomainEntity> T save(T entity) {
         em().persist(entity);
         return entity;
     }
 
     @Override
-    public <T extends Entity> T saveOrUpdate(T entity) {
+    public <T extends DomainEntity> T saveOrUpdate(T entity) {
         return em().merge(entity);
     }
 
     @Override
-    public <T extends Entity> T update(T entity) {
+    public <T extends DomainEntity> T update(T entity) {
         return em().merge(entity);
     }
 
     @Override
-    public <T extends Entity> T delete(T entity) {
+    public <T extends DomainEntity> T delete(T entity) {
         em().remove(entity);
         return entity;
     }
 
     /**
      * セッションキャッシュ中の永続化されていないエンティティを全てDBと同期(SQL発行)します。
-     * <p>SQL発行タイミングを明確にしたい箇所で呼び出すようにしてください。バッチ処理などでセッションキャッシュが
+     * <p>
+     * SQL発行タイミングを明確にしたい箇所で呼び出すようにしてください。バッチ処理などでセッションキャッシュが
      * メモリを逼迫するケースでは#flushAndClearを定期的に呼び出してセッションキャッシュの肥大化を防ぐようにしてください。
      */
     public JpaRepository flush() {
@@ -115,7 +122,8 @@ public abstract class JpaRepository implements Repository {
 
     /**
      * セッションキャッシュ中の永続化されていないエンティティをDBと同期化した上でセッションキャッシュを初期化します。
-     * <p>大量の更新が発生するバッチ処理などでは暗黙的に保持されるセッションキャッシュがメモリを逼迫して
+     * <p>
+     * 大量の更新が発生するバッチ処理などでは暗黙的に保持されるセッションキャッシュがメモリを逼迫して
      * 大きな問題を引き起こすケースが多々見られます。定期的に本処理を呼び出してセッションキャッシュの
      * サイズを定量に維持するようにしてください。
      */

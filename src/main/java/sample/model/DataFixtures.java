@@ -3,26 +3,32 @@ package sample.model;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import jakarta.annotation.PostConstruct;
 import sample.ActionStatusType;
 import sample.context.Timestamper;
 import sample.context.actor.Actor;
-import sample.context.orm.*;
+import sample.context.orm.JpaRepository;
+import sample.context.orm.TxTemplate;
 import sample.context.uid.IdGenerator;
-import sample.model.account.*;
+import sample.model.account.Account;
 import sample.model.account.Account.AccountStatusType;
-import sample.model.asset.*;
-import sample.model.asset.Cashflow.*;
+import sample.model.account.FiAccount;
+import sample.model.asset.CashBalance;
+import sample.model.asset.CashInOut;
+import sample.model.asset.Cashflow;
+import sample.model.asset.Cashflow.CashflowType;
+import sample.model.asset.Cashflow.RegCashflow;
+import sample.model.asset.Remarks;
 import sample.model.master.SelfFiAccount;
 import sample.util.TimePoint;
 
 /**
  * データ生成用のサポートコンポーネント。
- * <p>テストや開発時の簡易マスタデータ生成を目的としているため本番での利用は想定していません。
+ * <p>
+ * テストや開発時の簡易マスタデータ生成を目的としているため本番での利用は想定していません。
  * low: 実際の開発では開発/テスト環境のみ有効となるよう細かなプロファイル指定が必要となります。
  * 
  * @author jkazama
@@ -90,7 +96,7 @@ public class DataFixtures {
 
     /** キャッシュフローの簡易生成 */
     public Cashflow cf(String accountId, String amount, String eventDay, String valueDay) {
-        return cfReg(accountId, amount, valueDay).create(TimePoint.by(eventDay), Actor.Anonymous.getId());
+        return cfReg(accountId, amount, valueDay).create(TimePoint.by(eventDay), Actor.Anonymous.id());
     }
 
     /** キャッシュフロー登録パラメタの簡易生成 */

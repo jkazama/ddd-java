@@ -1,24 +1,15 @@
 package sample;
 
-import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * アプリケーションにおけるBean定義を表現します。
- * <p>クラス側でコンポーネント定義していない時はこちらで明示的に記載してください。
+ * <p>
+ * クラス側でコンポーネント定義していない時はこちらで明示的に記載してください。
  *
  * @author jkazama
  */
 @Configuration
 public class ApplicationConfig {
-
-    /** BeanValidationメッセージのUTF-8に対応したValidator。 */
-    @Bean
-    public LocalValidatorFactoryBean defaultValidator(MessageSource message) {
-        LocalValidatorFactoryBean factory = new LocalValidatorFactoryBean();
-        factory.setValidationMessageSource(message);
-        return factory;
-    }
 
 }

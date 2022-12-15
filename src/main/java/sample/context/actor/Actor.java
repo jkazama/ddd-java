@@ -2,45 +2,47 @@ package sample.context.actor;
 
 import java.util.Locale;
 
-import lombok.*;
-import sample.context.Dto;
+import lombok.Builder;
+import sample.context.actor.Actor.ActorRoleType;
 
 /**
  * ユースケースにおける利用者を表現します。
  * 
  * @author jkazama
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Actor implements Dto {
-
-    private static final long serialVersionUID = 1L;
+@Builder
+public record Actor(
+        /** 利用者ID */
+        String id,
+        /** 利用者名称 */
+        String name,
+        /** 利用者が持つ{@link ActorRoleType} */
+        ActorRoleType roleType,
+        /** 利用者が使用する{@link Locale} */
+        Locale locale,
+        /** 利用者の接続チャネル名称 */
+        String channel,
+        /** 利用者を特定する外部情報。(IPなど) */
+        String source) {
 
     /** 匿名利用者定数 */
-    public static Actor Anonymous = new Actor("unknown", ActorRoleType.ANONYMOUS);
+    public static Actor Anonymous = Actor.builder()
+            .id("unknown")
+            .name("unknown")
+            .roleType(ActorRoleType.ANONYMOUS)
+            .locale(Locale.getDefault())
+            .build();
     /** システム利用者定数 */
-    public static Actor System = new Actor("system", ActorRoleType.SYSTEM);
-
-    /** 利用者ID */
-    private String id;
-    /** 利用者名称 */
-    private String name;
-    /** 利用者が持つ{@link ActorRoleType} */
-    private ActorRoleType roleType;
-    /** 利用者が使用する{@link Locale} */
-    private Locale locale;
-    /** 利用者の接続チャネル名称 */
-    private String channel;
-    /** 利用者を特定する外部情報。(IPなど) */
-    private String source;
-
-    public Actor(String id, ActorRoleType roleType) {
-        this(id, id, roleType, Locale.getDefault(), null, null);
-    }
+    public static Actor System = Actor.builder()
+            .id("system")
+            .name("system")
+            .roleType(ActorRoleType.SYSTEM)
+            .locale(Locale.getDefault())
+            .build();
 
     /**
      * 利用者の役割を表現します。
+     * 
      * @author jkazama
      */
     public static enum ActorRoleType {

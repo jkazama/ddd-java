@@ -1,24 +1,35 @@
 package sample.context.rest;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import javax.persistence.EntityNotFoundException;
-import javax.validation.*;
-
-import org.springframework.context.*;
-import org.springframework.http.*;
-import org.springframework.validation.*;
+import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.ServletRequestBindingException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import sample.ValidationException;
-import sample.ValidationException.*;
+import sample.ValidationException.Warn;
+import sample.ValidationException.Warns;
 
 /**
  * REST用の例外Map変換サポート。
- * <p>AOPアドバイスで全てのRestControllerに対して例外処理を当て込みます。
+ * <p>
+ * AOPアドバイスで全てのRestControllerに対して例外処理を当て込みます。
  * 
  * @author jkazama
  */
@@ -62,16 +73,18 @@ public class RestErrorAdvice {
     }
 
     @ExceptionHandler(BindException.class)
+    @SuppressWarnings("null")
     public ResponseEntity<Map<String, String[]>> handleBind(BindException e) {
         log.warn(e.getMessage());
         Warns warns = Warns.init();
         for (ObjectError oe : e.getAllErrors()) {
             String field = "";
-            if (1 == oe.getCodes().length) {
-                field = bindField(oe.getCodes()[0]);
-            } else if (1 < oe.getCodes().length) {
+            var codes = oe.getCodes();
+            if (1 == codes.length) {
+                field = bindField(codes[0]);
+            } else if (1 < codes.length) {
                 // low: プリフィックスは冗長なので外してます
-                field = bindField(oe.getCodes()[1]);
+                field = bindField(codes[1]);
             }
             List<String> args = new ArrayList<String>();
             for (Object arg : oe.getArguments()) {
@@ -81,8 +94,8 @@ public class RestErrorAdvice {
                 args.add(arg.toString());
             }
             String message = oe.getDefaultMessage();
-            if (0 <= oe.getCodes()[0].indexOf("typeMismatch")) {
-                message = oe.getCodes()[2];
+            if (0 <= codes[0].indexOf("typeMismatch")) {
+                message = codes[2];
             }
             warns.add(field, message, args.toArray(new String[0]));
         }
@@ -126,9 +139,9 @@ public class RestErrorAdvice {
             this.msg = msg;
             for (Warn warn : warns) {
                 if (warn.global()) {
-                    errorGlobal(warn.getMessage());
+                    errorGlobal(warn.message());
                 } else {
-                    error(warn.getField(), warn.getMessage());
+                    error(warn.field(), warn.message());
                 }
             }
         }

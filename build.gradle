@@ -1,53 +1,42 @@
 plugins {
-    id "java"
-    id "eclipse"
-    id "org.springframework.boot" version "2.7.0"
-    id "io.spring.dependency-management" version "1.0.11.RELEASE"
+  id 'java'
+  id 'org.springframework.boot' version '3.0.0'
+  id 'io.spring.dependency-management' version '1.1.0'
 }
 
-ext['lombok.version'] = "1.18.24"
-
-version = "2.7.0"
-
-sourceCompatibility = '11'
-targetCompatibility = '11'
-
-def defaultEncoding = 'UTF-8'
-tasks.withType(AbstractCompile).each { it.options.encoding = defaultEncoding }
+version = "3.0.0"
 
 javadoc {
-    options.encoding = defaultEncoding
-    options.addBooleanOption('Xdoclint:none', true)
+  options.addBooleanOption('Xdoclint:none', true)
 }
 
 test {
-    include "**/model/**", "**/controller/**", "**/util/**", "**/context/**"
+  useJUnitPlatform()
+}
+
+jar.enabled=false
+springBoot {
+  buildInfo()
 }
 
 repositories {
     mavenCentral()
 }
 
-eclipseJdt.doLast {
-    File f = file('.settings/org.eclipse.core.resources.prefs')
-    f.write('eclipse.preferences.version=1\n')
-    f.append('encoding/<project>=UTF-8')
-}
-
 dependencies {
-    annotationProcessor "org.projectlombok:lombok"
-    compileOnly "org.projectlombok:lombok"
-    implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
-    implementation "org.springframework.boot:spring-boot-starter-validation"
-    implementation "org.springframework.boot:spring-boot-starter-aop"
-    implementation "org.springframework.boot:spring-boot-starter-actuator"
-    runtimeOnly "com.h2database:h2"
-    testAnnotationProcessor "org.projectlombok:lombok"
-    testCompileOnly "org.projectlombok:lombok"
-    testImplementation "org.springframework.boot:spring-boot-starter-test"
+  annotationProcessor "org.projectlombok:lombok"
+  compileOnly "org.projectlombok:lombok"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+  implementation "org.springframework.boot:spring-boot-starter-validation"
+  implementation "org.springframework.boot:spring-boot-starter-aop"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  runtimeOnly "com.h2database:h2"
+  testAnnotationProcessor "org.projectlombok:lombok"
+  testCompileOnly "org.projectlombok:lombok"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
 }
 
 wrapper {
-    gradleVersion = "7.4.2"
+    gradleVersion = "7.6"
 }

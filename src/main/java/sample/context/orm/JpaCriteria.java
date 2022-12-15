@@ -1,21 +1,27 @@
 package sample.context.orm;
 
-import java.util.*;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import javax.persistence.criteria.*;
-
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.Getter;
-import sample.context.Entity;
+import sample.context.DomainEntity;
 
 /**
  * JPAのCriteriaBuilderラッパー。
- * <p>Criteriaの簡易的な取り扱いを可能にします。
+ * <p>
+ * Criteriaの簡易的な取り扱いを可能にします。
  * low: 必要最低限の処理を割り切りで実装
  * 
  * @author jkazama
  */
 @Getter
-public class JpaCriteria<T extends Entity> {
+public class JpaCriteria<T extends DomainEntity> {
     private final CriteriaBuilder cb;
     private final CriteriaQuery<T> query;
     private final Root<T> root;
@@ -46,7 +52,7 @@ public class JpaCriteria<T extends Entity> {
     // low: 本番で利用する際はエスケープポリシーを明確にする必要あり。HibernateのMatchMode的なアプローチが安全
     public JpaCriteria<T> like(String field, final String value) {
         if (value != null) {
-            predicates.add(cb.like(root.<String> get(field), value));
+            predicates.add(cb.like(root.<String>get(field), value));
         }
         return this;
     }
@@ -62,7 +68,7 @@ public class JpaCriteria<T extends Entity> {
     /** between条件を付与します。 */
     public JpaCriteria<T> between(String field, final Date from, final Date to) {
         if (from != null && to != null) {
-            predicates.add(cb.between(root.<Date> get(field), from, to));
+            predicates.add(cb.between(root.<Date>get(field), from, to));
         }
         return this;
     }
@@ -70,7 +76,7 @@ public class JpaCriteria<T extends Entity> {
     /** between条件を付与します。 */
     public JpaCriteria<T> between(String field, final String from, final String to) {
         if (from != null && to != null) {
-            predicates.add(cb.between(root.<String> get(field), from, to));
+            predicates.add(cb.between(root.<String>get(field), from, to));
         }
         return this;
     }

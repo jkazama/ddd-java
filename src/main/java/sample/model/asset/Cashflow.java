@@ -1,18 +1,38 @@
 package sample.model.asset;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-
-import lombok.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import sample.ActionStatusType;
 import sample.context.Dto;
-import sample.context.orm.*;
-import sample.model.constraints.*;
+import sample.context.orm.JpaActiveRecord;
+import sample.context.orm.JpaRepository;
+import sample.model.constraints.AccountId;
+import sample.model.constraints.Amount;
+import sample.model.constraints.Category;
 import sample.model.constraints.Currency;
-import sample.util.*;
+import sample.model.constraints.Day;
+import sample.model.constraints.DayEmpty;
+import sample.util.TimePoint;
+import sample.util.Validator;
 
 /**
  * 入出金キャッシュフローを表現します。
@@ -85,7 +105,7 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
         v.verify(statusType.isUnprocessing(), "error.ActionStatusType.unprocessing"); // 「既に処理中/処理済です」
 
         setStatusType(ActionStatusType.PROCESSED);
-        setUpdateActor(rep.dh().actor().getId());
+        setUpdateActor(rep.dh().actor().id());
         setUpdateDate(now.getDate());
         update(rep);
         CashBalance.getOrNew(rep, accountId, currency).add(rep, amount);
@@ -94,14 +114,15 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
 
     /**
      * キャッシュフローをエラー状態にします。
-     * <p>処理中に失敗した際に呼び出してください。
+     * <p>
+     * 処理中に失敗した際に呼び出してください。
      * low: 実際はエラー事由などを引数に取って保持する
      */
     public Cashflow error(final JpaRepository rep) {
         validator().verify(statusType.isUnprocessed(), "error.ActionStatusType.unprocessing");
 
         setStatusType(ActionStatusType.ERROR);
-        setUpdateActor(rep.dh().actor().getId());
+        setUpdateActor(rep.dh().actor().id());
         setUpdateDate(rep.dh().time().date());
         return update(rep);
     }
@@ -140,10 +161,10 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
     public static Cashflow register(final JpaRepository rep, final RegCashflow p) {
         TimePoint now = rep.dh().time().tp();
         Validator v = new Validator();
-        v.checkField(now.beforeEqualsDay(p.getValueDay()),
+        v.checkField(now.beforeEqualsDay(p.valueDay()),
                 "valueDay", "error.Cashflow.beforeEqualsDay");
         v.verify();
-        Cashflow cf = p.create(now, rep.dh().actor().getId()).save(rep);
+        Cashflow cf = p.create(now, rep.dh().actor().id()).save(rep);
         return cf.canRealize(rep) ? cf.realize(rep) : cf;
     }
 
@@ -159,27 +180,17 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
         CashTransferOut
     }
 
-    /** 入出金キャッシュフローの登録パラメタ。  */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class RegCashflow implements Dto {
-        private static final long serialVersionUID = 1L;
-        @AccountId
-        private String accountId;
-        @Currency
-        private String currency;
-        @Amount
-        private BigDecimal amount;
-        @NotNull
-        private CashflowType cashflowType;
-        @Category
-        private String remark;
-        /** 未設定時は営業日を設定 */
-        @DayEmpty
-        private String eventDay;
-        @Day
-        private String valueDay;
+    /** 入出金キャッシュフローの登録パラメタ。 */
+    @Builder
+    public static record RegCashflow(
+            @AccountId String accountId,
+            @Currency String currency,
+            @Amount BigDecimal amount,
+            @NotNull CashflowType cashflowType,
+            @Category String remark,
+            /** 未設定時は営業日を設定 */
+            @DayEmpty String eventDay,
+            @Day String valueDay) implements Dto {
 
         public Cashflow create(final TimePoint now, String updActor) {
             TimePoint eventDate = eventDay == null ? now : new TimePoint(eventDay, now.getDate());

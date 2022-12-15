@@ -1,11 +1,12 @@
 package sample;
 
 import java.io.Serializable;
-import java.util.*;
-
-import lombok.Value;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.util.Assert;
+
+import lombok.Builder;
 
 /**
  * 審査例外を表現します。
@@ -20,6 +21,7 @@ public class ValidationException extends RuntimeException {
 
     /**
      * フィールドに従属しないグローバルな審査例外を通知するケースで利用してください。
+     * 
      * @param message
      */
     public ValidationException(String message) {
@@ -29,6 +31,7 @@ public class ValidationException extends RuntimeException {
 
     /**
      * フィールドに従属する審査例外を通知するケースで利用してください。
+     * 
      * @param field
      * @param message
      */
@@ -39,6 +42,7 @@ public class ValidationException extends RuntimeException {
 
     /**
      * フィールドに従属する審査例外を通知するケースで利用してください。
+     * 
      * @param field
      * @param message
      * @param messageArgs
@@ -50,10 +54,11 @@ public class ValidationException extends RuntimeException {
 
     /**
      * 複数件の審査例外を通知するケースで利用してください。
+     * 
      * @param warns
      */
     public ValidationException(final Warns warns) {
-        super(warns.head().getMessage());
+        super(warns.head().message());
         this.warns = warns;
     }
 
@@ -66,10 +71,10 @@ public class ValidationException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return warns.head().getMessage();
+        return warns.head().message();
     }
 
-    /** 審査例外情報  */
+    /** 審査例外情報 */
     public static class Warns implements Serializable {
         private static final long serialVersionUID = 1L;
         private List<Warn> list = new ArrayList<>();
@@ -126,12 +131,11 @@ public class ValidationException extends RuntimeException {
     /**
      * フィールドスコープの審査例外トークン。
      */
-    @Value
-    public static class Warn implements Serializable {
-        private static final long serialVersionUID = 1L;
-        private String field;
-        private String message;
-        private String[] messageArgs;
+    @Builder
+    public static record Warn(
+            String field,
+            String message,
+            String[] messageArgs) {
 
         /**
          * @return フィールドに従属しないグローバル例外時はtrue

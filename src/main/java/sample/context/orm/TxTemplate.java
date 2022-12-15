@@ -1,20 +1,22 @@
 package sample.context.orm;
 
-import java.io.Serializable;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.*;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 
 import sample.context.lock.IdLockHandler;
-import sample.context.lock.IdLockHandler.*;
+import sample.context.lock.IdLockHandler.IdLockPair;
+import sample.context.lock.IdLockHandler.LockType;
 
 /**
  * トランザクションの簡易ユーティリティです。
- * <p>TransactionTemplate のサポートビルダー的な利用を想定します。
+ * <p>
+ * TransactionTemplate のサポートビルダー的な利用を想定します。
  * 使い回しではなくトランザクション毎に生成して利用するようにしてください。
  * 
  * @author jkazama
@@ -57,7 +59,7 @@ public class TxTemplate {
     }
 
     /** 指定したIDの参照ロックをかけます */
-    public TxTemplate readIdLock(IdLockHandler idLock, Serializable id) {
+    public TxTemplate readIdLock(IdLockHandler idLock, Object id) {
         Assert.notNull(id, "id is required.");
         this.idLock = Optional.ofNullable(idLock);
         this.IdLockPair = Optional.of(new IdLockPair(id, LockType.Read));
@@ -65,7 +67,7 @@ public class TxTemplate {
     }
 
     /** 指定したIDの更新ロックをかけます */
-    public TxTemplate writeIdLock(IdLockHandler idLock, Serializable id) {
+    public TxTemplate writeIdLock(IdLockHandler idLock, Object id) {
         Assert.notNull(id, "id is required.");
         this.idLock = Optional.ofNullable(idLock);
         this.IdLockPair = Optional.of(new IdLockPair(id, LockType.Write));
@@ -75,7 +77,7 @@ public class TxTemplate {
     /** トランザクション処理をおこないます。 */
     public void tx(Runnable runnable) {
         if (this.idLock.isPresent()) {
-            this.idLock.get().call(this.IdLockPair.get().getId(), this.IdLockPair.get().getLockType(), () -> {
+            this.idLock.get().call(this.IdLockPair.get().id(), this.IdLockPair.get().lockType(), () -> {
                 tmpl.execute(status -> {
                     runnable.run();
                     return null;
@@ -92,7 +94,7 @@ public class TxTemplate {
     /** トランザクション処理をおこないます。 */
     public <T> T tx(Supplier<T> supplier) {
         if (this.idLock.isPresent()) {
-            return this.idLock.get().call(this.IdLockPair.get().getId(), this.IdLockPair.get().getLockType(),
+            return this.idLock.get().call(this.IdLockPair.get().id(), this.IdLockPair.get().lockType(),
                     () -> tmpl.execute(status -> supplier.get()));
         } else {
             return tmpl.execute(status -> supplier.get());

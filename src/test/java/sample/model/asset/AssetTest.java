@@ -1,6 +1,7 @@
 package sample.model.asset;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 
@@ -29,9 +30,9 @@ public class AssetTest extends EntityTestSupport {
             fixtures.cio("test", "8000", true).save(rep);
 
             assertTrue(
-                    Asset.by("test").canWithdraw(rep, "JPY", new BigDecimal("1000"), "20141121"));
+                    Asset.of("test").canWithdraw(rep, "JPY", new BigDecimal("1000"), "20141121"));
             assertFalse(
-                    Asset.by("test").canWithdraw(rep, "JPY", new BigDecimal("1001"), "20141121"));
+                    Asset.of("test").canWithdraw(rep, "JPY", new BigDecimal("1001"), "20141121"));
         });
     }
 

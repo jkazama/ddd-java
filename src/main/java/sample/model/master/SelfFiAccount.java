@@ -2,11 +2,20 @@ package sample.model.master;
 
 import java.util.List;
 
-import javax.persistence.*;
-
-import lombok.*;
-import sample.context.orm.*;
-import sample.model.constraints.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedQuery;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import sample.context.orm.JpaActiveRecord;
+import sample.context.orm.JpaRepository;
+import sample.model.constraints.AccountId;
+import sample.model.constraints.Category;
+import sample.model.constraints.Currency;
+import sample.model.constraints.IdStr;
 
 /**
  * サービス事業者の決済金融機関を表現します。

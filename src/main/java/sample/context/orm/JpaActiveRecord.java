@@ -2,15 +2,17 @@ package sample.context.orm;
 
 import java.io.Serializable;
 
-import sample.context.Entity;
+import sample.context.DomainEntity;
 import sample.util.Validator;
 
 /**
  * JPAベースでActiveRecordの概念を提供するEntity基底クラス。
- * <p>ここでは自インスタンスの状態に依存する簡易な振る舞いのみをサポートします。
+ * <p>
+ * ここでは自インスタンスの状態に依存する簡易な振る舞いのみをサポートします。
  * 実際のActiveRecordモデルにはget/find等の概念も含まれますが、それらは 自己の状態を
  * 変える行為ではなく対象インスタンスを特定する行為(クラス概念)にあたるため、
  * クラスメソッドとして継承先で個別定義するようにしてください。
+ * 
  * <pre>
  * public static Account findAll(final JpaRepository rep) {
  *     return rep.findAll(Account.class);
@@ -19,7 +21,7 @@ import sample.util.Validator;
  * 
  * @author jkazama
  */
-public abstract class JpaActiveRecord<T extends Entity> implements Serializable, Entity {
+public abstract class JpaActiveRecord<T extends DomainEntity> implements Serializable, DomainEntity {
 
     private static final long serialVersionUID = 1L;
 
@@ -32,6 +34,7 @@ public abstract class JpaActiveRecord<T extends Entity> implements Serializable,
 
     /**
      * 与えられたレポジトリを経由して自身を新規追加します。
+     * 
      * @param rep 永続化の際に利用する関連{@link JpaRepository}
      * @return 自身の情報
      */
@@ -42,6 +45,7 @@ public abstract class JpaActiveRecord<T extends Entity> implements Serializable,
 
     /**
      * 与えられたレポジトリを経由して自身を更新します。
+     * 
      * @param rep 永続化の際に利用する関連{@link JpaRepository}
      */
     @SuppressWarnings("unchecked")
@@ -51,6 +55,7 @@ public abstract class JpaActiveRecord<T extends Entity> implements Serializable,
 
     /**
      * 与えられたレポジトリを経由して自身を物理削除します。
+     * 
      * @param rep 永続化の際に利用する関連{@link JpaRepository}
      */
     @SuppressWarnings("unchecked")
@@ -60,6 +65,7 @@ public abstract class JpaActiveRecord<T extends Entity> implements Serializable,
 
     /**
      * 与えられたレポジトリを経由して自身を新規追加または更新します。
+     * 
      * @param rep 永続化の際に利用する関連{@link JpaRepository}
      */
     @SuppressWarnings("unchecked")
