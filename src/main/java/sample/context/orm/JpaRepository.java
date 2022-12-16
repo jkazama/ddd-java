@@ -135,9 +135,9 @@ public abstract class JpaRepository implements Repository {
 
     /** 標準スキーマのRepositoryを表現します。 */
     @org.springframework.stereotype.Repository
-    @Setter
     public static class DefaultRepository extends JpaRepository {
         @PersistenceContext
+        @Setter
         private EntityManager em;
 
         @Override

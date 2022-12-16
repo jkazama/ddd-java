@@ -2,7 +2,8 @@ package sample.model.asset;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.Entity;
@@ -10,7 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,7 +20,8 @@ import sample.context.orm.JpaRepository;
 import sample.model.constraints.AccountId;
 import sample.model.constraints.Amount;
 import sample.model.constraints.Currency;
-import sample.model.constraints.Day;
+import sample.model.constraints.ISODate;
+import sample.model.constraints.ISODateTime;
 import sample.util.Calculator;
 import sample.util.TimePoint;
 
@@ -49,8 +50,8 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
     @AccountId
     private String accountId;
     /** 基準日 */
-    @Day
-    private String baseDay;
+    @ISODate
+    private LocalDate baseDay;
     /** 通貨 */
     @Currency
     private String currency;
@@ -58,8 +59,8 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
     @Amount
     private BigDecimal amount;
     /** 更新日 */
-    @NotNull
-    private Date updateDate;
+    @ISODateTime
+    private LocalDateTime updateDate;
 
     /**
      * 残高へ指定した金額を反映します。

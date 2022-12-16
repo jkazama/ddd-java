@@ -1,6 +1,7 @@
 package sample.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 import org.springframework.stereotype.Component;
@@ -62,7 +63,7 @@ public class DataFixtures {
 
     public void initializeInTx() {
         String ccy = "JPY";
-        String baseDay = "20141118";
+        LocalDate baseDay = LocalDate.of(2014, 11, 18);
         time.daySet(baseDay);
 
         // 自社金融機関
@@ -90,13 +91,13 @@ public class DataFixtures {
     // asset
 
     /** 口座残高の簡易生成 */
-    public CashBalance cb(String accountId, String baseDay, String currency, String amount) {
+    public CashBalance cb(String accountId, LocalDate baseDay, String currency, String amount) {
         return new CashBalance(null, accountId, baseDay, currency, new BigDecimal(amount), new Date());
     }
 
     /** キャッシュフローの簡易生成 */
-    public Cashflow cf(String accountId, String amount, String eventDay, String valueDay) {
-        return cfReg(accountId, amount, valueDay).create(TimePoint.by(eventDay), Actor.Anonymous.id());
+    public Cashflow cf(String accountId, String amount, LocalDate eventDay, LocalDate valueDay) {
+        return cfReg(accountId, amount, valueDay).create(TimePoint.of(eventDay), Actor.Anonymous.id());
     }
 
     /** キャッシュフロー登録パラメタの簡易生成 */

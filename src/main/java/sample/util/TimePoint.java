@@ -1,6 +1,7 @@
 package sample.util;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -21,39 +22,39 @@ import sample.model.constraints.Day;
 public class TimePoint {
     /** 日付(営業日) */
     @Day
-    private String day;
+    private LocalDate day;
     /** 日付におけるシステム日時 */
     @NotNull
-    private Date date;
+    private LocalDateTime date;
 
     /** 指定日付と同じか。(day == targetDay) */
-    public boolean equalsDay(String targetDay) {
+    public boolean equalsDay(LocalDate targetDay) {
         return day.equals(targetDay);
     }
 
     /** 指定日付よりも前か。(day < targetDay) */
-    public boolean beforeDay(String targetDay) {
-        return DateUtils.date(day).before(DateUtils.date(targetDay));
+    public boolean beforeDay(LocalDate targetDay) {
+        return day.isBefore(targetDay);
     }
 
     /** 指定日付以前か。(day <= targetDay) */
-    public boolean beforeEqualsDay(String targetDay) {
+    public boolean beforeEqualsDay(LocalDate targetDay) {
         return equalsDay(targetDay) || beforeDay(targetDay);
     }
 
     /** 指定日付よりも後か。(targetDay < day) */
-    public boolean afterDay(String targetDay) {
-        return DateUtils.date(day).after(DateUtils.date(targetDay));
+    public boolean afterDay(LocalDate targetDay) {
+        return day.isAfter(targetDay);
     }
 
     /** 指定日付以降か。(targetDay <= day) */
-    public boolean afterEqualsDay(String targetDay) {
+    public boolean afterEqualsDay(LocalDate targetDay) {
         return equalsDay(targetDay) || afterDay(targetDay);
     }
 
     /** 日付を元にTimePointを生成します。 */
-    public static TimePoint by(String day) {
-        return new TimePoint(day, DateUtils.date(day));
+    public static TimePoint of(LocalDate day) {
+        return new TimePoint(day, DateUtils.dateByDay(day));
     }
 
 }

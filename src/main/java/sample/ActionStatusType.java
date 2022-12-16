@@ -1,6 +1,6 @@
 package sample;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * 何らかの行為に関わる処理ステータス概念。
@@ -20,16 +20,14 @@ public enum ActionStatusType {
     ERROR;
 
     /** 完了済みのステータス一覧 */
-    public static final List<ActionStatusType> finishTypes = Collections.unmodifiableList(
-            Arrays.asList(PROCESSED, CANCELLED));
+    public static final List<ActionStatusType> finishTypes = List.of(PROCESSED, CANCELLED);
 
     /** 未完了のステータス一覧(処理中は含めない) */
-    public static final List<ActionStatusType> unprocessingTypes = Collections.unmodifiableList(
-            Arrays.asList(UNPROCESSED, ERROR));
+    public static final List<ActionStatusType> unprocessingTypes = List.of(UNPROCESSED, ERROR);
 
     /** 未完了のステータス一覧(処理中も含める) */
-    public static final List<ActionStatusType> unprocessedTypes = Collections.unmodifiableList(
-            Arrays.asList(UNPROCESSED, PROCESSING, ERROR));
+    public static final List<ActionStatusType> unprocessedTypes = List.of(
+            UNPROCESSED, PROCESSING, ERROR);
 
     /** 完了済みのステータスの時はtrue */
     public boolean isFinish() {

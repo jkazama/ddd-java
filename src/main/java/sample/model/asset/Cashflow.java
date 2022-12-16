@@ -1,6 +1,7 @@
 package sample.model.asset;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -150,7 +151,7 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
     /**
      * 指定受渡日で実現対象となるキャッシュフロー一覧を検索します。
      */
-    public static List<Cashflow> findDoRealize(final JpaRepository rep, String valueDay) {
+    public static List<Cashflow> findDoRealize(final JpaRepository rep, LocalDate valueDay) {
         return rep.tmpl().find("Cashflow.findDoRealize", valueDay, ActionStatusType.unprocessedTypes);
     }
 

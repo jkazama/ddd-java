@@ -1,6 +1,7 @@
 package sample.model.asset;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -87,10 +88,10 @@ public class CashInOut extends JpaActiveRecord<CashInOut> {
     private TimePoint requestDate;
     /** 発生日 */
     @Day
-    private String eventDay;
+    private LocalDate eventDay;
     /** 受渡日 */
     @Day
-    private String valueDay;
+    private LocalDate valueDay;
     /** 相手方金融機関コード */
     @IdStr
     private String targetFiCode;
