@@ -2,7 +2,7 @@ services:
   workspace-backend:
     build: .
     image: jkazama/ddd-java
-    command: /bin/sh -c "chown -R $UID:$GID /home/vscode/.gradle /home/vscode/.vscode-server; while sleep 1000; do :; done"
+    command: sleep infinity
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     volumes:
@@ -10,8 +10,10 @@ services:
       - ~/.ssh:/home/vscode/.ssh
       - backend-gradle-cache:/home/vscode/.gradle
       - backend-extensions:/home/vscode/.vscode-server/extensions
+      - backend-extensions-insiders:/home/vscode/.vscode-server/-extensions-insiders
     working_dir: /home/vscode/workspace
 
 volumes:
   backend-gradle-cache:
   backend-extensions:
+  backend-extensions-insiders:

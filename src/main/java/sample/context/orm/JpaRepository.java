@@ -37,10 +37,6 @@ public abstract class JpaRepository implements Repository {
      */
     public abstract EntityManager em();
 
-    public <T extends DomainEntity> JpaCriteria<T> criteria(Class<T> clazz) {
-        return new JpaCriteria<T>(clazz, em().getCriteriaBuilder());
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -78,13 +74,13 @@ public abstract class JpaRepository implements Repository {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends DomainEntity> T getOne(Class<T> clazz) {
-        return (T) em().createQuery("from " + clazz.getSimpleName()).getSingleResult();
+        return (T) em().createQuery("FROM " + clazz.getSimpleName()).getSingleResult();
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T extends DomainEntity> List<T> findAll(Class<T> clazz) {
-        return em().createQuery("from " + clazz.getSimpleName()).getResultList();
+        return em().createQuery("FROM " + clazz.getSimpleName()).getResultList();
     }
 
     @Override

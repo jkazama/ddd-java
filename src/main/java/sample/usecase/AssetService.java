@@ -76,7 +76,7 @@ public class AssetService {
                 return CashInOut.withdraw(rep, p);
             });
             // low: トランザクション確定後に出金依頼を受付した事をメール通知します。
-            this.event.publishEvent(AppMailEvent.of(AppMailType.FinishRequestWithdraw, cio));
+            this.event.publishEvent(AppMailEvent.of(AppMailType.FINISH_REQUEST_WITHDRAW, cio));
             return cio.getId();
         });
     }

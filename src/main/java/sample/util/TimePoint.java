@@ -3,11 +3,11 @@ package sample.util;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import sample.model.constraints.Day;
+import sample.model.constraints.ISODate;
+import sample.model.constraints.ISODateTime;
 
 /**
  * 日付と日時のペアを表現します。
@@ -21,10 +21,10 @@ import sample.model.constraints.Day;
 @AllArgsConstructor
 public class TimePoint {
     /** 日付(営業日) */
-    @Day
+    @ISODate
     private LocalDate day;
     /** 日付におけるシステム日時 */
-    @NotNull
+    @ISODateTime
     private LocalDateTime date;
 
     /** 指定日付と同じか。(day == targetDay) */

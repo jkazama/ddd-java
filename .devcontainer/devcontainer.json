@@ -1,7 +1,9 @@
 // https://aka.ms/devcontainer.json
 {
 	"name": "ddd-java",
-	"dockerComposeFile": ["./compose.yml"],
+	"dockerComposeFile": [
+		"./compose.yml"
+	],
 	"service": "workspace-backend",
 	"shutdownAction": "stopCompose",
 	"settings": {
@@ -26,6 +28,8 @@
 		"pivotal.vscode-spring-boot",
 		"pivotal.vscode-boot-dev-pack"
 	],
-	"forwardPorts": [8080],
+	"forwardPorts": [
+		8080
+	],
 	"remoteUser": "vscode"
 }

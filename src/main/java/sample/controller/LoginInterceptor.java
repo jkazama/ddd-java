@@ -6,12 +6,14 @@ import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Component;
 
 import sample.context.actor.Actor;
-import sample.context.actor.Actor.ActorRoleType;
+import sample.context.actor.ActorRoleType;
 import sample.context.actor.ActorSession;
 
 /**
  * スレッドローカルに利用者を紐付けるAOPInterceptor。
  * low: 今回は認証機能を用意していないのでダミーです。
+ * low: Spring Secuirty 利用時は Filter を差し込んで ActorSession の紐付をおこなってください。
+ * WebFlux 等で ThreadLocal が利用出来ない時は ReactiveSecurityContextHolder を用いて設定してください。
  * 
  * @author jkazama
  */

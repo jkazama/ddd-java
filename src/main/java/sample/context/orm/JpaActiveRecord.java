@@ -3,7 +3,6 @@ package sample.context.orm;
 import java.io.Serializable;
 
 import sample.context.DomainEntity;
-import sample.util.Validator;
 
 /**
  * JPAベースでActiveRecordの概念を提供するEntity基底クラス。
@@ -24,13 +23,6 @@ import sample.util.Validator;
 public abstract class JpaActiveRecord<T extends DomainEntity> implements Serializable, DomainEntity {
 
     private static final long serialVersionUID = 1L;
-
-    /**
-     * @return 審査ユーティリティを生成します。
-     */
-    protected Validator validator() {
-        return new Validator();
-    }
 
     /**
      * 与えられたレポジトリを経由して自身を新規追加します。

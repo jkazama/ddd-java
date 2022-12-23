@@ -1,7 +1,8 @@
 package sample.controller;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +23,6 @@ import sample.model.asset.CashInOut.RegCashOut;
 import sample.model.constraints.AbsAmount;
 import sample.model.constraints.Currency;
 import sample.usecase.AssetService;
-import sample.util.TimePoint;
 
 /**
  * 資産に関わる顧客のUI要求を処理します。
@@ -71,17 +71,19 @@ public class AssetController {
             String id,
             String currency,
             BigDecimal absAmount,
-            TimePoint requestDate,
-            String eventDay,
-            String valueDay,
+            LocalDate requestDay,
+            LocalDateTime requestDate,
+            LocalDate eventDay,
+            LocalDate valueDay,
             ActionStatusType statusType,
-            Date updateDate,
+            LocalDateTime updateDate,
             Long cashflowId) implements Dto {
         public static UserCashOut of(final CashInOut cio) {
             return UserCashOut.builder()
                     .id(cio.getId())
                     .currency(cio.getCurrency())
                     .absAmount(cio.getAbsAmount())
+                    .requestDay(cio.getRequestDay())
                     .requestDate(cio.getRequestDate())
                     .eventDay(cio.getEventDay())
                     .valueDay(cio.getValueDay())

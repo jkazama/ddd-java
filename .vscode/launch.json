@@ -13,6 +13,12 @@
             "mainClass": "sample.Application",
             "projectName": "ddd-java",
             "args": "-Xmx128m",
+            "env": {
+                "SHOW_SQL": "true",
+                "DDL_AUTO": "create-drop",
+                "MAIL_ENABLED": "false",
+                "MANAGEMENT_EXPOSURE": "*",
+            },
         }
     ]
 }

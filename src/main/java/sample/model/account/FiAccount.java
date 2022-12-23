@@ -1,16 +1,12 @@
 package sample.model.account;
 
-import java.util.List;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.NamedQuery;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import sample.ValidationException;
 import sample.context.orm.JpaActiveRecord;
 import sample.context.orm.JpaRepository;
 import sample.model.constraints.AccountId;
@@ -31,7 +27,6 @@ import sample.model.constraints.IdStr;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-@NamedQuery(name = "FiAccount.load", query = "from FiAccount a where a.accountId=?1 and a.category=?2 and a.currency=?3")
 public class FiAccount extends JpaActiveRecord<FiAccount> {
 
     private static final long serialVersionUID = 1L;
@@ -57,10 +52,10 @@ public class FiAccount extends JpaActiveRecord<FiAccount> {
     private String fiAccountId;
 
     public static FiAccount load(final JpaRepository rep, String accountId, String category, String currency) {
-        List<FiAccount> list = rep.tmpl().find("FiAccount.load", accountId, category, currency);
-        if (list.isEmpty()) {
-            throw new ValidationException("error.Entity.load");
-        }
-        return list.get(0);
+        var jpql = """
+                FROM FiAccount a
+                WHERE a.accountId=?1 AND a.category=?2 AND a.currency=?3
+                """;
+        return rep.tmpl().load(jpql, accountId, category, currency);
     }
 }

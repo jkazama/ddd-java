@@ -59,7 +59,7 @@ public class AssetAdminService {
             // low: TX内のロックが適切に動くかはIdLockHandlerの実装次第。
             // 調整が難しいようなら大人しく営業停止時間(IdLock必要な処理のみ非活性化されている状態)を作って、
             // ロック無しで一気に処理してしまう方がシンプル。
-            idLock.call(cio.getAccountId(), LockType.Write, () -> {
+            idLock.call(cio.getAccountId(), LockType.WRITE, () -> {
                 try {
                     cio.process(rep);
                     // low: SQLの発行担保。扱う情報に相互依存が無く、セッションキャッシュはリークしがちなので都度消しておく。
@@ -92,7 +92,7 @@ public class AssetAdminService {
         // low: 日回し後の実行を想定
         var day = rep.dh().time().day();
         for (final Cashflow cf : Cashflow.findDoRealize(rep, day)) {
-            idLock.call(cf.getAccountId(), LockType.Write, () -> {
+            idLock.call(cf.getAccountId(), LockType.WRITE, () -> {
                 try {
                     cf.realize(rep);
                     rep.flushAndClear();

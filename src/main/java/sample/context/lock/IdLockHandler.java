@@ -24,9 +24,9 @@ public class IdLockHandler {
     /** IDロック上で処理を実行します。 */
     public <T> T call(Object id, LockType lockType, final Callable<T> callable) {
         if (lockType.isWrite()) {
-            writeLock(id);
+            this.writeLock(id);
         } else {
-            readLock(id);
+            this.readLock(id);
         }
         try {
             return callable.call();
@@ -35,13 +35,13 @@ public class IdLockHandler {
         } catch (Exception e) {
             throw new InvocationException("error.Exception", e);
         } finally {
-            unlock(id);
+            this.unlock(id);
         }
     }
 
     /** IDロック上で処理を実行します。 */
     public void call(Object id, LockType lockType, final Runnable runnable) {
-        call(id, lockType, () -> {
+        this.call(id, lockType, () -> {
             runnable.run();
             return null;
         });
@@ -51,7 +51,7 @@ public class IdLockHandler {
         if (id == null) {
             return;
         }
-        idLock(id).writeLock().lock();
+        this.idLock(id).writeLock().lock();
     }
 
     private ReentrantReadWriteLock idLock(final Object id) {
@@ -62,7 +62,7 @@ public class IdLockHandler {
         if (id == null) {
             return;
         }
-        idLock(id).readLock().lock();
+        this.idLock(id).readLock().lock();
     }
 
     public void unlock(final Object id) {
@@ -85,16 +85,16 @@ public class IdLockHandler {
      */
     public static enum LockType {
         /** 読み取り専用ロック */
-        Read,
+        READ,
         /** 読み書き専用ロック */
-        Write;
+        WRITE;
 
         public boolean isRead() {
             return !isWrite();
         }
 
         public boolean isWrite() {
-            return this == Write;
+            return this == WRITE;
         }
     }
 

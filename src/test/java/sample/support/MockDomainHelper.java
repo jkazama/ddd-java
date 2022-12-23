@@ -1,5 +1,6 @@
 package sample.support;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +14,9 @@ public class MockDomainHelper extends DomainHelper {
     private Map<String, String> settingMap = new HashMap<>();
 
     public MockDomainHelper() {
-        super(new Timestamper("20141118"), new IdGenerator());
+        super(new Timestamper(
+                LocalDate.of(2014, 11, 18)),
+                new IdGenerator());
     }
 
     public MockDomainHelper setting(String id, String value) {

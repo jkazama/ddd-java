@@ -1,11 +1,8 @@
 package sample.model.master;
 
-import java.util.List;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.NamedQuery;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,9 +25,7 @@ import sample.model.constraints.IdStr;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-@NamedQuery(name = "SelfFiAccount.load", query = "from SelfFiAccount a where a.category=?1 and a.currency=?2")
 public class SelfFiAccount extends JpaActiveRecord<SelfFiAccount> {
-
     private static final long serialVersionUID = 1L;
 
     /** ID */
@@ -51,11 +46,11 @@ public class SelfFiAccount extends JpaActiveRecord<SelfFiAccount> {
     private String fiAccountId;
 
     public static SelfFiAccount load(final JpaRepository rep, String category, String currency) {
-        List<SelfFiAccount> list = rep.tmpl().find("SelfFiAccount.load", category, currency);
-        if (list.isEmpty()) {// low: tmpl()にgetOneを追加すればいらない
-            throw new IllegalStateException("自社金融機関情報が登録されていません。[" + category + ": " + currency + "]");
-        }
-        return list.get(0);
+        var jpql = """
+                FROM SelfFiAccount a
+                WHERE a.category=?1 AND a.currency=?2
+                """;
+        return rep.tmpl().load(jpql, category, currency);
     }
 
 }

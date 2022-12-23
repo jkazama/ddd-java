@@ -2,7 +2,7 @@ package sample.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -92,7 +92,7 @@ public class DataFixtures {
 
     /** 口座残高の簡易生成 */
     public CashBalance cb(String accountId, LocalDate baseDay, String currency, String amount) {
-        return new CashBalance(null, accountId, baseDay, currency, new BigDecimal(amount), new Date());
+        return new CashBalance(null, accountId, baseDay, currency, new BigDecimal(amount), LocalDateTime.now());
     }
 
     /** キャッシュフローの簡易生成 */
@@ -101,16 +101,39 @@ public class DataFixtures {
     }
 
     /** キャッシュフロー登録パラメタの簡易生成 */
-    public RegCashflow cfReg(String accountId, String amount, String valueDay) {
-        return new RegCashflow(accountId, "JPY", new BigDecimal(amount), CashflowType.CashIn, "cashIn", null, valueDay);
+    public RegCashflow cfReg(String accountId, String amount, LocalDate valueDay) {
+        return RegCashflow.builder()
+                .accountId(accountId)
+                .currency("JPY")
+                .amount(new BigDecimal(amount))
+                .cashflowType(CashflowType.CashIn)
+                .remark("cashIn")
+                .valueDay(valueDay)
+                .build();
     }
 
     /** 振込入出金依頼の簡易生成。 [発生日(T+1)/受渡日(T+3)] */
     public CashInOut cio(String accountId, String absAmount, boolean withdrawal) {
-        return new CashInOut(uid.generate(CashInOut.class.getSimpleName()), accountId, "JPY",
-                new BigDecimal(absAmount), withdrawal, time.tp(), time.dayPlus(1), time.dayPlus(3), "tFiCode",
-                "tFiAccId",
-                "sFiCode", "sFiAccId", ActionStatusType.UNPROCESSED, "dummy", time.date(), null);
+        TimePoint now = time.tp();
+        var cb = new CashInOut();
+        cb.setId(uid.generate(CashInOut.class.getSimpleName()));
+        cb.setAccountId(accountId);
+        cb.setCurrency("JPY");
+        cb.setAbsAmount(new BigDecimal(absAmount));
+        cb.setWithdrawal(withdrawal);
+        cb.setRequestDay(now.getDay());
+        cb.setRequestDate(now.getDate());
+        cb.setEventDay(now.getDay().plusDays(1));
+        cb.setValueDay(now.getDay().plusDays(3));
+        cb.setTargetFiCode("tFiCode");
+        cb.setTargetFiAccountId("tFiAccId");
+        cb.setSelfFiCode("sFiCode");
+        cb.setSelfFiAccountId("sFiAccId");
+        cb.setStatusType(ActionStatusType.UNPROCESSED);
+        cb.setUpdateActor("dummy");
+        cb.setUpdateDate(now.getDate());
+        cb.setCashflowId(null);
+        return cb;
     }
 
     // master

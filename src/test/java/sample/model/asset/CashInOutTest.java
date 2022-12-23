@@ -7,25 +7,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 import sample.ActionStatusType;
 import sample.EntityTestSupport;
 import sample.ValidationException;
+import sample.model.DomainErrorKeys;
 import sample.model.account.Account;
 import sample.model.asset.CashInOut.FindCashInOut;
 import sample.model.asset.CashInOut.RegCashOut;
 import sample.model.asset.Cashflow.CashflowType;
 import sample.model.master.SelfFiAccount;
-import sample.util.DateUtils;
 
 // low: 簡易な正常系検証が中心。依存するCashflow/CashBalanceの単体検証パスを前提。
 public class CashInOutTest extends EntityTestSupport {
 
     private static final String ccy = "JPY";
     private static final String accId = "test";
-    private static final String baseDay = "20141118";
+    private static final LocalDate baseDay = LocalDate.of(2014, 11, 18);
 
     @Override
     protected void setupPreset() {
@@ -47,24 +49,35 @@ public class CashInOutTest extends EntityTestSupport {
     public void find() {
         tx(() -> {
             CashInOut cio = fixtures.cio(accId, "300", true);
-            cio.setUpdateDate(DateUtils.date("20141118"));
+            cio.setEventDay(LocalDate.of(2014, 11, 18));
             cio.save(rep);
             // low: ちゃんとやると大変なので最低限の検証
             assertEquals(
                     1,
-                    CashInOut.find(rep, findParam("20141118", "20141119")).size());
+                    CashInOut.find(rep, findParam(LocalDate.of(2014, 11, 18), LocalDate.of(2014, 11, 19))).size());
             assertEquals(
                     1,
-                    CashInOut.find(rep, findParam("20141118", "20141119", ActionStatusType.UNPROCESSED)).size());
+                    CashInOut.find(rep, findParam(LocalDate.of(2014, 11, 18),
+                            LocalDate.of(2014, 11, 19), ActionStatusType.UNPROCESSED)).size());
             assertTrue(
-                    CashInOut.find(rep, findParam("20141118", "20141119", ActionStatusType.PROCESSED)).isEmpty());
+                    CashInOut.find(rep, findParam(
+                            LocalDate.of(2014, 11, 18),
+                            LocalDate.of(2014, 11, 19), ActionStatusType.PROCESSED)).isEmpty());
             assertTrue(
-                    CashInOut.find(rep, findParam("20141119", "20141120", ActionStatusType.UNPROCESSED)).isEmpty());
+                    CashInOut.find(rep, findParam(
+                            LocalDate.of(2014, 11, 19),
+                            LocalDate.of(2014, 11, 20), ActionStatusType.UNPROCESSED)).isEmpty());
         });
     }
 
-    private FindCashInOut findParam(String fromDay, String toDay, ActionStatusType... statusTypes) {
-        return new FindCashInOut(ccy, statusTypes, fromDay, toDay);
+    private FindCashInOut findParam(
+            LocalDate fromDay, LocalDate toDay, ActionStatusType... statusTypes) {
+        return FindCashInOut.builder()
+                .currency(ccy)
+                .statusTypes(statusTypes != null ? Set.of(statusTypes) : null)
+                .updFromDay(fromDay)
+                .updToDay(toDay)
+                .build();
     }
 
     @Test
@@ -75,7 +88,7 @@ public class CashInOutTest extends EntityTestSupport {
                 CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("1001")));
                 fail();
             } catch (ValidationException e) {
-                assertEquals("error.CashInOut.withdrawAmount", e.getMessage());
+                assertEquals(AssetErrorKeys.CIO_WITHDRAWAL_AMOUNT, e.getMessage());
             }
 
             // 0円出金の出金依頼 [例外]
@@ -92,9 +105,9 @@ public class CashInOutTest extends EntityTestSupport {
             assertEquals(ccy, normal.getCurrency());
             assertEquals(new BigDecimal("300"), normal.getAbsAmount());
             assertTrue(normal.isWithdrawal());
-            assertEquals(baseDay, normal.getRequestDate().getDay());
+            assertEquals(baseDay, normal.getRequestDay());
             assertEquals(baseDay, normal.getEventDay());
-            assertEquals("20141121", normal.getValueDay());
+            assertEquals(LocalDate.of(2014, 11, 21), normal.getValueDay());
             assertEquals(Remarks.CashOut + "-" + ccy, normal.getTargetFiCode());
             assertEquals("FI" + accId, normal.getTargetFiAccountId());
             assertEquals(Remarks.CashOut + "-" + ccy, normal.getSelfFiCode());
@@ -107,7 +120,7 @@ public class CashInOutTest extends EntityTestSupport {
                 CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("701")));
                 fail();
             } catch (ValidationException e) {
-                assertEquals("error.CashInOut.withdrawAmount", e.getMessage());
+                assertEquals(AssetErrorKeys.CIO_WITHDRAWAL_AMOUNT, e.getMessage());
             }
         });
     }
@@ -121,14 +134,14 @@ public class CashInOutTest extends EntityTestSupport {
 
             // 発生日を迎えた場合は取消できない [例外]
             CashInOut today = fixtures.cio(accId, "300", true);
-            today.setEventDay("20141118");
+            today.setEventDay(LocalDate.of(2014, 11, 18));
             today.save(rep);
             rep.flushAndClear();
             try {
                 today.cancel(rep);
                 fail();
             } catch (ValidationException e) {
-                assertEquals("error.CashInOut.beforeEqualsDay", e.getMessage());
+                assertEquals(AssetErrorKeys.CIO_EVENT_DAY_BEFORE_EQUALS_DAY, e.getMessage());
             }
         });
     }
@@ -141,14 +154,14 @@ public class CashInOutTest extends EntityTestSupport {
 
             // 処理済の時はエラーにできない [例外]
             CashInOut today = fixtures.cio(accId, "300", true);
-            today.setEventDay("20141118");
+            today.setEventDay(LocalDate.of(2014, 11, 18));
             today.setStatusType(ActionStatusType.PROCESSED);
             today.save(rep);
             try {
                 today.error(rep);
                 fail();
             } catch (ValidationException e) {
-                assertEquals("error.ActionStatusType.unprocessing", e.getMessage());
+                assertEquals(DomainErrorKeys.STATUS_PROCESSING, e.getMessage());
             }
         });
     }
@@ -162,12 +175,12 @@ public class CashInOutTest extends EntityTestSupport {
                 future.process(rep);
                 fail();
             } catch (ValidationException e) {
-                assertEquals("error.CashInOut.afterEqualsDay", e.getMessage());
+                assertEquals(AssetErrorKeys.CIO_EVENT_DAY_AFTER_EQUALS_DAY, e.getMessage());
             }
 
             // 発生日到来処理
             CashInOut normal = fixtures.cio(accId, "300", true);
-            normal.setEventDay("20141118");
+            normal.setEventDay(LocalDate.of(2014, 11, 18));
             normal.save(rep);
             CashInOut processed = normal.process(rep);
             assertEquals(ActionStatusType.PROCESSED, processed.getStatusType());
@@ -180,8 +193,8 @@ public class CashInOutTest extends EntityTestSupport {
             assertEquals(new BigDecimal("-300"), cf.getAmount());
             assertEquals(CashflowType.CashOut, cf.getCashflowType());
             assertEquals(Remarks.CashOut, cf.getRemark());
-            assertEquals("20141118", cf.getEventDate().getDay());
-            assertEquals("20141121", cf.getValueDay());
+            assertEquals(LocalDate.of(2014, 11, 18), cf.getEventDay());
+            assertEquals(LocalDate.of(2014, 11, 21), cf.getValueDay());
             assertEquals(ActionStatusType.UNPROCESSED, cf.getStatusType());
         });
     }

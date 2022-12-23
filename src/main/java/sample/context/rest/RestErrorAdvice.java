@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import sample.ValidationException;
 import sample.ValidationException.Warn;
 import sample.ValidationException.Warns;
+import sample.model.DomainErrorKeys;
 
 /**
  * REST用の例外Map変換サポート。
@@ -59,13 +60,13 @@ public class RestErrorAdvice {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, String[]>> handleEntityNotFoundException(EntityNotFoundException e) {
         log.warn(e.getMessage());
-        return new ErrorHolder(msg, "error.EntityNotFoundException").result(HttpStatus.BAD_REQUEST);
+        return new ErrorHolder(msg, DomainErrorKeys.ENTITY_NOT_FOUND).result(HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, String[]>> handleConstraintViolation(ConstraintViolationException e) {
         log.warn(e.getMessage());
-        Warns warns = Warns.init();
+        var warns = Warns.init();
         for (ConstraintViolation<?> v : e.getConstraintViolations()) {
             warns.add(v.getPropertyPath().toString(), v.getMessage());
         }
@@ -86,7 +87,7 @@ public class RestErrorAdvice {
                 // low: プリフィックスは冗長なので外してます
                 field = bindField(codes[1]);
             }
-            List<String> args = new ArrayList<String>();
+            var args = new ArrayList<String>();
             for (Object arg : oe.getArguments()) {
                 if (arg instanceof MessageSourceResolvable) {
                     continue;
@@ -139,16 +140,16 @@ public class RestErrorAdvice {
             this.msg = msg;
             for (Warn warn : warns) {
                 if (warn.global()) {
-                    errorGlobal(warn.message());
+                    this.errorGlobal(warn.message());
                 } else {
-                    error(warn.field(), warn.message());
+                    this.error(warn.field(), warn.message());
                 }
             }
         }
 
         public ErrorHolder(final MessageSource msg, String globalMsgKey, String... msgArgs) {
             this.msg = msg;
-            errorGlobal(globalMsgKey, msgArgs);
+            this.errorGlobal(globalMsgKey, msgArgs);
         }
 
         public ErrorHolder errorGlobal(String msgKey, String defaultMsg, String... msgArgs) {
@@ -160,7 +161,7 @@ public class RestErrorAdvice {
         }
 
         public ErrorHolder errorGlobal(String msgKey, String... msgArgs) {
-            return errorGlobal(msgKey, msgKey, msgArgs);
+            return this.errorGlobal(msgKey, msgKey, msgArgs);
         }
 
         public ErrorHolder error(String field, String msgKey, String... msgArgs) {
@@ -172,7 +173,7 @@ public class RestErrorAdvice {
         }
 
         public ResponseEntity<Map<String, String[]>> result(HttpStatus status) {
-            Map<String, String[]> ret = new HashMap<String, String[]>();
+            var ret = new HashMap<String, String[]>();
             for (Map.Entry<String, List<String>> v : errors.entrySet()) {
                 ret.put(v.getKey(), v.getValue().toArray(new String[0]));
             }

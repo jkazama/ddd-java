@@ -27,27 +27,27 @@ public class AuditHandler {
 
     /** 与えた処理に対し、監査ログを記録します。 */
     public <T> T audit(String message, final Callable<T> callable) {
-        logger().trace(message(message, "[開始]", null));
+        this.logger().trace(message(message, "[開始]", null));
         long start = System.currentTimeMillis();
         try {
             T v = callable.call();
-            logger().info(message(message, "[完了]", start));
+            this.logger().info(message(message, "[完了]", start));
             return v;
         } catch (ValidationException e) {
-            logger().warn(message(message, "[審例]", start));
+            this.logger().warn(message(message, "[審例]", start));
             throw e;
         } catch (RuntimeException e) {
-            logger().error(message(message, "[例外]", start));
+            this.logger().error(message(message, "[例外]", start));
             throw (RuntimeException) e;
         } catch (Exception e) {
-            logger().error(message(message, "[例外]", start));
+            this.logger().error(message(message, "[例外]", start));
             throw new InvocationException("error.Exception", e);
         }
     }
 
     /** 与えた処理に対し、監査ログを記録します。 */
     public void audit(String message, final Runnable runnable) {
-        audit(message, () -> {
+        this.audit(message, () -> {
             runnable.run();
             return null;
         });
@@ -59,7 +59,7 @@ public class AuditHandler {
 
     private String message(String message, String prefix, Long startMillis) {
         Actor actor = ActorSession.actor();
-        StringBuilder sb = new StringBuilder(prefix + " ");
+        var sb = new StringBuilder(prefix + " ");
         if (actor.roleType().isAnonymous()) {
             sb.append("[" + actor.source() + "] ");
         } else if (actor.roleType().notSystem()) {

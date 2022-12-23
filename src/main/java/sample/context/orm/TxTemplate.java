@@ -62,7 +62,7 @@ public class TxTemplate {
     public TxTemplate readIdLock(IdLockHandler idLock, Object id) {
         Assert.notNull(id, "id is required.");
         this.idLock = Optional.ofNullable(idLock);
-        this.IdLockPair = Optional.of(new IdLockPair(id, LockType.Read));
+        this.IdLockPair = Optional.of(new IdLockPair(id, LockType.READ));
         return this;
     }
 
@@ -70,7 +70,7 @@ public class TxTemplate {
     public TxTemplate writeIdLock(IdLockHandler idLock, Object id) {
         Assert.notNull(id, "id is required.");
         this.idLock = Optional.ofNullable(idLock);
-        this.IdLockPair = Optional.of(new IdLockPair(id, LockType.Write));
+        this.IdLockPair = Optional.of(new IdLockPair(id, LockType.WRITE));
         return this;
     }
 
