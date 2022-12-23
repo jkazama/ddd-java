@@ -1,12 +1,12 @@
 package sample.context.lock;
 
-import java.io.Serializable;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.stereotype.Component;
 
-import lombok.Value;
 import sample.InvocationException;
 
 /**
@@ -19,14 +19,14 @@ import sample.InvocationException;
 @Component
 public class IdLockHandler {
 
-    private ConcurrentMap<Serializable, ReentrantReadWriteLock> lockMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<Object, ReentrantReadWriteLock> lockMap = new ConcurrentHashMap<>();
 
     /** IDロック上で処理を実行します。 */
-    public <T> T call(Serializable id, LockType lockType, final Callable<T> callable) {
+    public <T> T call(Object id, LockType lockType, final Callable<T> callable) {
         if (lockType.isWrite()) {
-            writeLock(id);
+            this.writeLock(id);
         } else {
-            readLock(id);
+            this.readLock(id);
         }
         try {
             return callable.call();
@@ -35,37 +35,37 @@ public class IdLockHandler {
         } catch (Exception e) {
             throw new InvocationException("error.Exception", e);
         } finally {
-            unlock(id);
+            this.unlock(id);
         }
     }
-    
+
     /** IDロック上で処理を実行します。 */
-    public void call(Serializable id, LockType lockType, final Runnable runnable) {
-        call(id, lockType, () -> {
+    public void call(Object id, LockType lockType, final Runnable runnable) {
+        this.call(id, lockType, () -> {
             runnable.run();
             return null;
         });
     }
 
-    private void writeLock(final Serializable id) {
+    private void writeLock(final Object id) {
         if (id == null) {
             return;
         }
-        idLock(id).writeLock().lock();
+        this.idLock(id).writeLock().lock();
     }
 
-    private ReentrantReadWriteLock idLock(final Serializable id) {
+    private ReentrantReadWriteLock idLock(final Object id) {
         return lockMap.computeIfAbsent(id, v -> new ReentrantReadWriteLock());
     }
 
-    public void readLock(final Serializable id) {
+    public void readLock(final Object id) {
         if (id == null) {
             return;
         }
-        idLock(id).readLock().lock();
+        this.idLock(id).readLock().lock();
     }
 
-    public void unlock(final Serializable id) {
+    public void unlock(final Object id) {
         if (id == null) {
             return;
         }
@@ -85,24 +85,21 @@ public class IdLockHandler {
      */
     public static enum LockType {
         /** 読み取り専用ロック */
-        Read,
+        READ,
         /** 読み書き専用ロック */
-        Write;
+        WRITE;
 
         public boolean isRead() {
             return !isWrite();
         }
 
         public boolean isWrite() {
-            return this == Write;
+            return this == WRITE;
         }
     }
-    
+
     /** IdLock の対象と種別のペアを表現します。 */
-    @Value
-    public static class IdLockPair {
-        private Serializable id;
-        private LockType lockType;
+    public static record IdLockPair(Object id, LockType lockType) {
     }
-    
+
 }

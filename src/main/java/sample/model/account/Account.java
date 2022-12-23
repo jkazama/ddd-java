@@ -1,12 +1,20 @@
 package sample.model.account;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import sample.ValidationException;
-import sample.context.orm.*;
-import sample.model.constraints.*;
+import sample.context.orm.JpaActiveRecord;
+import sample.context.orm.JpaRepository;
+import sample.model.constraints.AccountId;
+import sample.model.constraints.Email;
+import sample.model.constraints.Name;
 
 /**
  * 口座を表現します。
@@ -57,6 +65,7 @@ public class Account extends JpaActiveRecord<Account> {
         NORMAL,
         /** 退会 */
         WITHDRAWAL;
+
         public boolean inacitve() {
             return this == WITHDRAWAL;
         }

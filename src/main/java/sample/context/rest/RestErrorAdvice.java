@@ -1,24 +1,36 @@
 package sample.context.rest;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import javax.persistence.EntityNotFoundException;
-import javax.validation.*;
-
-import org.springframework.context.*;
-import org.springframework.http.*;
-import org.springframework.validation.*;
+import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.ServletRequestBindingException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import sample.ValidationException;
-import sample.ValidationException.*;
+import sample.ValidationException.Warn;
+import sample.ValidationException.Warns;
+import sample.model.DomainErrorKeys;
 
 /**
  * REST用の例外Map変換サポート。
- * <p>AOPアドバイスで全てのRestControllerに対して例外処理を当て込みます。
+ * <p>
+ * AOPアドバイスで全てのRestControllerに対して例外処理を当て込みます。
  * 
  * @author jkazama
  */
@@ -48,13 +60,13 @@ public class RestErrorAdvice {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, String[]>> handleEntityNotFoundException(EntityNotFoundException e) {
         log.warn(e.getMessage());
-        return new ErrorHolder(msg, "error.EntityNotFoundException").result(HttpStatus.BAD_REQUEST);
+        return new ErrorHolder(msg, DomainErrorKeys.ENTITY_NOT_FOUND).result(HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, String[]>> handleConstraintViolation(ConstraintViolationException e) {
         log.warn(e.getMessage());
-        Warns warns = Warns.init();
+        var warns = Warns.init();
         for (ConstraintViolation<?> v : e.getConstraintViolations()) {
             warns.add(v.getPropertyPath().toString(), v.getMessage());
         }
@@ -62,18 +74,20 @@ public class RestErrorAdvice {
     }
 
     @ExceptionHandler(BindException.class)
+    @SuppressWarnings("null")
     public ResponseEntity<Map<String, String[]>> handleBind(BindException e) {
         log.warn(e.getMessage());
         Warns warns = Warns.init();
         for (ObjectError oe : e.getAllErrors()) {
             String field = "";
-            if (1 == oe.getCodes().length) {
-                field = bindField(oe.getCodes()[0]);
-            } else if (1 < oe.getCodes().length) {
+            var codes = oe.getCodes();
+            if (1 == codes.length) {
+                field = bindField(codes[0]);
+            } else if (1 < codes.length) {
                 // low: プリフィックスは冗長なので外してます
-                field = bindField(oe.getCodes()[1]);
+                field = bindField(codes[1]);
             }
-            List<String> args = new ArrayList<String>();
+            var args = new ArrayList<String>();
             for (Object arg : oe.getArguments()) {
                 if (arg instanceof MessageSourceResolvable) {
                     continue;
@@ -81,8 +95,8 @@ public class RestErrorAdvice {
                 args.add(arg.toString());
             }
             String message = oe.getDefaultMessage();
-            if (0 <= oe.getCodes()[0].indexOf("typeMismatch")) {
-                message = oe.getCodes()[2];
+            if (0 <= codes[0].indexOf("typeMismatch")) {
+                message = codes[2];
             }
             warns.add(field, message, args.toArray(new String[0]));
         }
@@ -126,16 +140,16 @@ public class RestErrorAdvice {
             this.msg = msg;
             for (Warn warn : warns) {
                 if (warn.global()) {
-                    errorGlobal(warn.getMessage());
+                    this.errorGlobal(warn.message());
                 } else {
-                    error(warn.getField(), warn.getMessage());
+                    this.error(warn.field(), warn.message());
                 }
             }
         }
 
         public ErrorHolder(final MessageSource msg, String globalMsgKey, String... msgArgs) {
             this.msg = msg;
-            errorGlobal(globalMsgKey, msgArgs);
+            this.errorGlobal(globalMsgKey, msgArgs);
         }
 
         public ErrorHolder errorGlobal(String msgKey, String defaultMsg, String... msgArgs) {
@@ -147,7 +161,7 @@ public class RestErrorAdvice {
         }
 
         public ErrorHolder errorGlobal(String msgKey, String... msgArgs) {
-            return errorGlobal(msgKey, msgKey, msgArgs);
+            return this.errorGlobal(msgKey, msgKey, msgArgs);
         }
 
         public ErrorHolder error(String field, String msgKey, String... msgArgs) {
@@ -159,7 +173,7 @@ public class RestErrorAdvice {
         }
 
         public ResponseEntity<Map<String, String[]>> result(HttpStatus status) {
-            Map<String, String[]> ret = new HashMap<String, String[]>();
+            var ret = new HashMap<String, String[]>();
             for (Map.Entry<String, List<String>> v : errors.entrySet()) {
                 ret.put(v.getKey(), v.getValue().toArray(new String[0]));
             }

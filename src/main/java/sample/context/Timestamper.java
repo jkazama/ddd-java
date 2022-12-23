@@ -1,10 +1,11 @@
 package sample.context;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 
-import sample.util.*;
+import sample.util.TimePoint;
 
 /**
  * 日時ユーティリティコンポーネント。
@@ -17,29 +18,28 @@ public class Timestamper {
 
     /** 営業日 */
     // low: サンプルではDataFixturesの初期化時に固定営業日(20141118)が設定されます。
-    private String day;
+    private LocalDate day;
 
     public Timestamper() {
-        this(DateUtils.dayFormat(new Date()));
+        this(LocalDate.now());
     }
-    
-    public Timestamper(String day) {
+
+    public Timestamper(LocalDate day) {
         this.day = day;
     }
 
     /**
      * @return 営業日を返します。
      */
-    public String day() {
+    public LocalDate day() {
         return day;
     }
 
     /**
-     * low: 日時クラスなどは必要に応じてJodaTimeなどのリッチクラスを利用
      * @return 日時を返します。
      */
-    public Date date() {
-        return new Date();
+    public LocalDateTime date() {
+        return LocalDateTime.now();
     }
 
     /**
@@ -51,20 +51,18 @@ public class Timestamper {
 
     /**
      * 営業日を更新します。
-     * low: 営業日は静的なので日回しバッチ等で上書く必要があります 
+     * low: 営業日は静的なので日回しバッチ等で上書く必要があります
+     * 
      * @param day 更新営業日
      */
-    public Timestamper daySet(String day) {
+    public Timestamper daySet(LocalDate day) {
         this.day = day;
         return this;
     }
 
-    //low: サンプル用の割り切り(T + n)算出メソッド。実際は休日含めた営業日の考慮が必要
-    public String dayPlus(int i) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(DateUtils.date(day));
-        cal.add(Calendar.DAY_OF_MONTH, i);
-        return DateUtils.dayFormat(cal.getTime());
+    // low: サンプル用の割り切り(T + n)算出メソッド。実際は休日含めた営業日の考慮が必要
+    public LocalDate dayPlus(int i) {
+        return this.day.plusDays(i);
     }
 
 }

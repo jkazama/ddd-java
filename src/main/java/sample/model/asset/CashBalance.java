@@ -1,16 +1,27 @@
 package sample.model.asset;
 
-import java.math.*;
-import java.util.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-
-import lombok.*;
-import sample.context.orm.*;
-import sample.model.constraints.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import sample.context.orm.JpaActiveRecord;
+import sample.context.orm.JpaRepository;
+import sample.model.constraints.AccountId;
+import sample.model.constraints.Amount;
 import sample.model.constraints.Currency;
-import sample.util.*;
+import sample.model.constraints.ISODate;
+import sample.model.constraints.ISODateTime;
+import sample.util.Calculator;
+import sample.util.TimePoint;
 
 /**
  * 口座残高を表現します。
@@ -22,9 +33,6 @@ import sample.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-@NamedQueries({
-        @NamedQuery(name = "CashBalance.findAcc", query = "from CashBalance c where c.accountId=?1 and c.currency=?2 order by c.baseDay desc"),
-        @NamedQuery(name = "CashBalance.findAccWithDay", query = "from CashBalance c where c.accountId=?1 and c.currency=?2 and c.baseDay=?3 order by c.baseDay desc") })
 public class CashBalance extends JpaActiveRecord<CashBalance> {
 
     private static final long serialVersionUID = 1L;
@@ -37,8 +45,8 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
     @AccountId
     private String accountId;
     /** 基準日 */
-    @Day
-    private String baseDay;
+    @ISODate
+    private LocalDate baseDay;
     /** 通貨 */
     @Currency
     private String currency;
@@ -46,8 +54,8 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
     @Amount
     private BigDecimal amount;
     /** 更新日 */
-    @NotNull
-    private Date updateDate;
+    @ISODateTime
+    private LocalDateTime updateDate;
 
     /**
      * 残高へ指定した金額を反映します。
@@ -65,8 +73,13 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
      * low: 複数通貨の適切な考慮や細かい審査は本筋でないので割愛。
      */
     public static CashBalance getOrNew(final JpaRepository rep, String accountId, String currency) {
-        String baseDay = rep.dh().time().day();
-        List<CashBalance> list = rep.tmpl().find("CashBalance.findAccWithDay", accountId, currency, baseDay);
+        LocalDate baseDay = rep.dh().time().day();
+        var jpql = """
+                FROM CashBalance cb
+                WHERE cb.accountId=?1 AND cb.currency=?2 AND cb.baseDay=?3
+                ORDER BY cb.baseDay DESC
+                """;
+        List<CashBalance> list = rep.tmpl().find(jpql, accountId, currency, baseDay);
         if (list.isEmpty()) {
             return create(rep, accountId, currency);
         } else {
@@ -76,11 +89,16 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
 
     private static CashBalance create(final JpaRepository rep, String accountId, String currency) {
         TimePoint now = rep.dh().time().tp();
-        List<CashBalance> list = rep.tmpl().find("CashBalance.findAcc", accountId, currency);
+        var jpql = """
+                FROM CashBalance cb
+                WHERE cb.accountId=?1 AND cb.currency=?2
+                ORDER BY cb.baseDay DESC
+                """;
+        List<CashBalance> list = rep.tmpl().find(jpql, accountId, currency);
         if (list.isEmpty()) {
             return new CashBalance(null, accountId, now.getDay(), currency, BigDecimal.ZERO, now.getDate()).save(rep);
         } else { // 残高繰越
-            CashBalance prev = list.get(0);
+            var prev = list.get(0);
             return new CashBalance(null, accountId, now.getDay(), currency, prev.getAmount(), now.getDate()).save(rep);
         }
     }

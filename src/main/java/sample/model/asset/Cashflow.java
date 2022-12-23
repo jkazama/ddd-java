@@ -1,18 +1,33 @@
 package sample.model.asset;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import sample.ActionStatusType;
 import sample.context.Dto;
-import sample.context.orm.*;
-import sample.model.constraints.*;
+import sample.context.orm.JpaActiveRecord;
+import sample.context.orm.JpaRepository;
+import sample.model.DomainErrorKeys;
+import sample.model.constraints.AccountId;
+import sample.model.constraints.Amount;
+import sample.model.constraints.Category;
 import sample.model.constraints.Currency;
-import sample.util.*;
+import sample.model.constraints.ISODate;
+import sample.model.constraints.ISODateEmpty;
+import sample.model.constraints.ISODateTime;
+import sample.util.TimePoint;
+import sample.util.Validator;
 
 /**
  * 入出金キャッシュフローを表現します。
@@ -24,14 +39,8 @@ import sample.util.*;
  */
 @Entity
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-@NamedQueries({
-        @NamedQuery(name = "Cashflow.findDoRealize", query = "from Cashflow c where c.valueDay=?1 and c.statusType in ?2 order by c.id"),
-        @NamedQuery(name = "Cashflow.findUnrealize", query = "from Cashflow c where c.accountId=?1 and c.currency=?2 and c.valueDay<=?3 and c.statusType in ?4 order by c.id") })
 public class Cashflow extends JpaActiveRecord<Cashflow> {
-
     private static final long serialVersionUID = 1L;
 
     /** ID */
@@ -54,16 +63,15 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
     /** 摘要 */
     @Category
     private String remark;
-    /** 発生日/日時 */
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "day", column = @Column(name = "event_day")),
-            @AttributeOverride(name = "date", column = @Column(name = "event_date")) })
-    @NotNull
-    private TimePoint eventDate;
+    /** 発生日 */
+    @ISODate
+    private LocalDate eventDay;
+    /** 発生日時 */
+    @ISODateTime
+    private LocalDateTime eventDate;
     /** 受渡日 */
-    @Day
-    private String valueDay;
+    @ISODate
+    private LocalDate valueDay;
     /** 処理種別 */
     @Enumerated(EnumType.STRING)
     @NotNull
@@ -72,38 +80,44 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
     @AccountId
     private String updateActor;
     /** 更新日 */
-    @NotNull
-    private Date updateDate;
+    @ISODateTime
+    private LocalDateTime updateDate;
 
     /**
      * キャッシュフローを処理済みにして残高へ反映します。
      */
     public Cashflow realize(final JpaRepository rep) {
         TimePoint now = rep.dh().time().tp();
-        Validator v = validator();
-        v.verify(canRealize(rep), "error.Cashflow.realizeDay");
-        v.verify(statusType.isUnprocessing(), "error.ActionStatusType.unprocessing"); // 「既に処理中/処理済です」
+        // 業務審査
+        Validator.validate(v -> {
+            v.verify(canRealize(rep), AssetErrorKeys.CF_REALIZE_DAY);
+            v.verify(statusType.isUnprocessing(), DomainErrorKeys.STATUS_PROCESSING);
+        });
 
-        setStatusType(ActionStatusType.PROCESSED);
-        setUpdateActor(rep.dh().actor().getId());
-        setUpdateDate(now.getDate());
-        update(rep);
+        this.setStatusType(ActionStatusType.PROCESSED);
+        this.setUpdateActor(rep.dh().actor().id());
+        this.setUpdateDate(now.getDate());
+        this.update(rep);
         CashBalance.getOrNew(rep, accountId, currency).add(rep, amount);
         return this;
     }
 
     /**
      * キャッシュフローをエラー状態にします。
-     * <p>処理中に失敗した際に呼び出してください。
+     * <p>
+     * 処理中に失敗した際に呼び出してください。
      * low: 実際はエラー事由などを引数に取って保持する
      */
     public Cashflow error(final JpaRepository rep) {
-        validator().verify(statusType.isUnprocessed(), "error.ActionStatusType.unprocessing");
+        // 業務審査
+        Validator.validate(v -> {
+            v.verify(statusType.isUnprocessed(), DomainErrorKeys.STATUS_PROCESSING);
+        });
 
-        setStatusType(ActionStatusType.ERROR);
-        setUpdateActor(rep.dh().actor().getId());
-        setUpdateDate(rep.dh().time().date());
-        return update(rep);
+        this.setStatusType(ActionStatusType.ERROR);
+        this.setUpdateActor(rep.dh().actor().id());
+        this.setUpdateDate(rep.dh().time().date());
+        return this.update(rep);
     }
 
     /**
@@ -120,17 +134,28 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
     /**
      * 指定受渡日時点で未実現のキャッシュフロー一覧を検索します。(口座通貨別)
      */
-    public static List<Cashflow> findUnrealize(final JpaRepository rep, String accountId, String currency,
-            String valueDay) {
-        return rep.tmpl().find("Cashflow.findUnrealize", accountId, currency, valueDay,
-                ActionStatusType.unprocessedTypes);
+    public static List<Cashflow> findUnrealize(
+            final JpaRepository rep, String accountId, String currency, LocalDate valueDay) {
+        var jpql = """
+                FROM Cashflow c
+                WHERE c.accountId=?1 AND c.currency=?2
+                 AND c.valueDay<=?3 AND c.statusType IN ?4
+                ORDER BY c.id
+                """;
+        return rep.tmpl().find(jpql,
+                accountId, currency, valueDay, ActionStatusType.UNPROCESSED_TYPES);
     }
 
     /**
      * 指定受渡日で実現対象となるキャッシュフロー一覧を検索します。
      */
-    public static List<Cashflow> findDoRealize(final JpaRepository rep, String valueDay) {
-        return rep.tmpl().find("Cashflow.findDoRealize", valueDay, ActionStatusType.unprocessedTypes);
+    public static List<Cashflow> findDoRealize(final JpaRepository rep, LocalDate valueDay) {
+        var jpql = """
+                FROM Cashflow c
+                WHERE c.valueDay=?1 AND c.statusType in ?2
+                ORDER BY c.id
+                """;
+        return rep.tmpl().find(jpql, valueDay, ActionStatusType.UNPROCESSED_TYPES);
     }
 
     /**
@@ -139,11 +164,12 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
      */
     public static Cashflow register(final JpaRepository rep, final RegCashflow p) {
         TimePoint now = rep.dh().time().tp();
-        Validator v = new Validator();
-        v.checkField(now.beforeEqualsDay(p.getValueDay()),
-                "valueDay", "error.Cashflow.beforeEqualsDay");
-        v.verify();
-        Cashflow cf = p.create(now, rep.dh().actor().getId()).save(rep);
+        // 業務審査
+        Validator.validate(v -> {
+            v.checkField(now.beforeEqualsDay(p.valueDay()),
+                    "valueDay", "error.Cashflow.beforeEqualsDay");
+        });
+        Cashflow cf = p.create(now, rep.dh().actor().id()).save(rep);
         return cf.canRealize(rep) ? cf.realize(rep) : cf;
     }
 
@@ -159,32 +185,33 @@ public class Cashflow extends JpaActiveRecord<Cashflow> {
         CashTransferOut
     }
 
-    /** 入出金キャッシュフローの登録パラメタ。  */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class RegCashflow implements Dto {
-        private static final long serialVersionUID = 1L;
-        @AccountId
-        private String accountId;
-        @Currency
-        private String currency;
-        @Amount
-        private BigDecimal amount;
-        @NotNull
-        private CashflowType cashflowType;
-        @Category
-        private String remark;
-        /** 未設定時は営業日を設定 */
-        @DayEmpty
-        private String eventDay;
-        @Day
-        private String valueDay;
+    /** 入出金キャッシュフローの登録パラメタ。 */
+    @Builder
+    public static record RegCashflow(
+            @AccountId String accountId,
+            @Currency String currency,
+            @Amount BigDecimal amount,
+            @NotNull CashflowType cashflowType,
+            @Category String remark,
+            /** 未設定時は営業日を設定 */
+            @ISODateEmpty LocalDate eventDay,
+            @ISODate LocalDate valueDay) implements Dto {
 
         public Cashflow create(final TimePoint now, String updActor) {
-            TimePoint eventDate = eventDay == null ? now : new TimePoint(eventDay, now.getDate());
-            return new Cashflow(null, accountId, currency, amount, cashflowType, remark, eventDate, valueDay,
-                    ActionStatusType.UNPROCESSED, updActor, now.getDate());
+            var eventDate = eventDay == null ? now : new TimePoint(eventDay, now.getDate());
+            var m = new Cashflow();
+            m.setAccountId(accountId);
+            m.setCurrency(currency);
+            m.setAmount(amount);
+            m.setCashflowType(cashflowType);
+            m.setRemark(remark);
+            m.setEventDay(eventDate.getDay());
+            m.setEventDate(eventDate.getDate());
+            m.setValueDay(valueDay);
+            m.setStatusType(ActionStatusType.UNPROCESSED);
+            m.setUpdateActor(updActor);
+            m.setUpdateDate(now.getDate());
+            return m;
         }
     }
 

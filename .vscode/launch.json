@@ -1,0 +1,24 @@
+{
+    // IntelliSense を使用して利用可能な属性を学べます。
+    // 既存の属性の説明をホバーして表示します。
+    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Run ddd-java",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "sample.Application",
+            "projectName": "ddd-java",
+            "args": "-Xmx128m",
+            "env": {
+                "SHOW_SQL": "true",
+                "DDL_AUTO": "create-drop",
+                "MAIL_ENABLED": "false",
+                "MANAGEMENT_EXPOSURE": "*",
+            },
+        }
+    ]
+}

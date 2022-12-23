@@ -1,9 +1,12 @@
 package sample.controller.system;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-import sample.usecase.*;
+import lombok.RequiredArgsConstructor;
+import sample.usecase.AssetAdminService;
+import sample.usecase.MasterAdminService;
 
 /**
  * システムジョブのUI要求を処理します。
@@ -16,17 +19,10 @@ import sample.usecase.*;
  */
 @RestController
 @RequestMapping("/system/job")
+@RequiredArgsConstructor
 public class JobController {
-
-    @Autowired
-    private AssetAdminService asset;
-    @Autowired
-    private MasterAdminService master;
-
-    public JobController(AssetAdminService asset, MasterAdminService master) {
-        this.asset = asset;
-        this.master = master;
-    }
+    private final AssetAdminService asset;
+    private final MasterAdminService master;
 
     /** 営業日を進めます。 */
     @RequestMapping(value = "/daily/processDay", method = { RequestMethod.POST, RequestMethod.GET })

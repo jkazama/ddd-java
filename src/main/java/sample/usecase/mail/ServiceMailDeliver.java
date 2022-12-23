@@ -1,6 +1,7 @@
 package sample.usecase.mail;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.event.EventListener;
@@ -18,7 +19,8 @@ import sample.usecase.event.AppMailEvent;
 
 /**
  * アプリケーション層のサービスメール送信を行います。
- * <p>独自にトランザクションを管理するので、サービスのトランザクション内で
+ * <p>
+ * 独自にトランザクションを管理するので、サービスのトランザクション内で
  * 直接呼び出さないように注意してください。
  * 
  * @author jkazama
@@ -31,7 +33,7 @@ public class ServiceMailDeliver {
     private final DefaultRepository rep;
     private final PlatformTransactionManager tx;
     private final MailHandler mail;
-    
+
     public ServiceMailDeliver(
             MessageSource msg,
             DefaultRepository rep,
@@ -47,14 +49,14 @@ public class ServiceMailDeliver {
     @EventListener(AppMailEvent.class)
     public void handleEvent(AppMailEvent<?> event) {
         switch (event.getMailType()) {
-        case FinishRequestWithdraw:
-            sendFinishRequestWithdraw((CashInOut)event.getValue());
-            break;
-        default:
-            throw new IllegalStateException("サポートされないメール種別です。 [" + event + "]");
+            case FINISH_REQUEST_WITHDRAW:
+                sendFinishRequestWithdraw((CashInOut) event.getValue());
+                break;
+            default:
+                throw new IllegalStateException("サポートされないメール種別です。 [" + event + "]");
         }
     }
-    
+
     /** 出金依頼受付メールを送信します。 */
     public void sendFinishRequestWithdraw(final CashInOut cio) {
         send(cio.getAccountId(), account -> {
@@ -80,7 +82,7 @@ public class ServiceMailDeliver {
             }
         });
     }
-    
+
     /** メール送信情報の生成インターフェース */
     public static interface ServiceMailCreator {
         SendMail create(final Account account);

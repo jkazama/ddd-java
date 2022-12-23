@@ -2,7 +2,9 @@ package sample.context;
 
 import org.springframework.stereotype.Component;
 
-import sample.context.actor.*;
+import lombok.RequiredArgsConstructor;
+import sample.context.actor.Actor;
+import sample.context.actor.ActorSession;
 import sample.context.uid.IdGenerator;
 
 /**
@@ -11,33 +13,16 @@ import sample.context.uid.IdGenerator;
  * @author jkazama
  */
 @Component
+@RequiredArgsConstructor
 public class DomainHelper {
-
-    private final ActorSession actorSession;
     private final Timestamper time;
     private final IdGenerator uid;
-
-    public DomainHelper(
-            ActorSession actorSession,
-            Timestamper time,
-            IdGenerator uid) {
-        this.actorSession = actorSession;
-        this.time = time;
-        this.uid = uid;
-    }
 
     /**
      * @return ログイン中のユースケース利用者
      */
     public Actor actor() {
-        return actorSession.actor();
-    }
-
-    /**
-     * @return ログインセッション情報
-     */
-    public ActorSession actorSession() {
-        return actorSession;
+        return ActorSession.actor();
     }
 
     /**

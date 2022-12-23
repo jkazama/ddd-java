@@ -5,8 +5,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.*;
 
-import javax.validation.*;
-import javax.validation.constraints.*;
+import jakarta.validation.*;
+import jakarta.validation.constraints.*;
 
 /**
  * 文字列ID(必須)を表現する制約注釈。

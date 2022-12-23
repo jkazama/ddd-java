@@ -1,6 +1,8 @@
 package sample.util;
 
-import sample.*;
+import java.util.function.Consumer;
+
+import sample.ValidationException;
 import sample.ValidationException.Warns;
 
 /**
@@ -10,6 +12,13 @@ import sample.ValidationException.Warns;
  */
 public class Validator {
     private Warns warns = Warns.init();
+
+    /** 審査処理を行います。 */
+    public static void validate(Consumer<Validator> proc) {
+        var validator = new Validator();
+        proc.accept(validator);
+        validator.verify();
+    }
 
     /** 審査を行います。validがfalseの時に例外を内部にスタックします。 */
     public Validator check(boolean valid, String message) {

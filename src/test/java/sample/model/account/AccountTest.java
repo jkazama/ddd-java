@@ -4,7 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import sample.*;
+import sample.EntityTestSupport;
+import sample.ValidationException;
 import sample.model.account.Account.AccountStatusType;
 
 public class AccountTest extends EntityTestSupport {

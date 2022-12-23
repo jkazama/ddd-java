@@ -4,3 +4,5 @@
 .project
 /bin
 /build
+.vscode/*
+!.vscode/launch.json

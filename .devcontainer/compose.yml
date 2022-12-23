@@ -1,0 +1,19 @@
+services:
+  workspace-backend:
+    build: .
+    image: jkazama/ddd-java
+    command: sleep infinity
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    volumes:
+      - ..:/home/vscode/workspace:cached
+      - ~/.ssh:/home/vscode/.ssh
+      - backend-gradle-cache:/home/vscode/.gradle
+      - backend-extensions:/home/vscode/.vscode-server/extensions
+      - backend-extensions-insiders:/home/vscode/.vscode-server/-extensions-insiders
+    working_dir: /home/vscode/workspace
+
+volumes:
+  backend-gradle-cache:
+  backend-extensions:
+  backend-extensions-insiders:
