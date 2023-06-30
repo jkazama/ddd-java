@@ -6,46 +6,47 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import sample.InvocationException;
-import sample.ValidationException;
+import sample.context.InvocationException;
+import sample.context.ValidationException;
 import sample.context.actor.Actor;
 import sample.context.actor.ActorSession;
 
 /**
- * 利用者監査やシステム監査(定時バッチや日次バッチ等)などを取り扱います。
+ * It deals with user inspection or EDP audit (an appointed hour batch or kind
+ * of day batch).
  * <p>
- * 暗黙的な適用を望む場合は、AOPとの連携も検討してください。
- * low: 実際はLoggerだけでなく、システムスキーマの監査テーブルへ書きだされます。(開始時と完了時で別TXにする事で応答無し状態を検知可能)
- * low: Loggerを利用する時はlogger.xmlを利用してファイル等に吐き出す
- * 
- * @author jkazama
+ * When you expect an implicit application, please examine the cooperation with
+ * AOP.
+ * <p>
+ * The target log is begun to write as well as Logger to the inspection table of
+ * the system schema.
+ * (You can detect a replyless state by making the other transaction at a start
+ * and completion.)
  */
 @Component
 public class AuditHandler {
     public static final Logger loggerActor = LoggerFactory.getLogger("Audit.Actor");
     public static final Logger loggerEvent = LoggerFactory.getLogger("Audit.Event");
 
-    /** 与えた処理に対し、監査ログを記録します。 */
     public <T> T audit(String message, final Callable<T> callable) {
-        this.logger().trace(message(message, "[開始]", null));
+        this.logger().trace(message(message, "[Start]", null));
         long start = System.currentTimeMillis();
         try {
             T v = callable.call();
-            this.logger().info(message(message, "[完了]", start));
+            this.logger().info(message(message, "[ End ]", start));
             return v;
         } catch (ValidationException e) {
-            this.logger().warn(message(message, "[審例]", start));
+            this.logger().warn(message(message, "[Warning]", start));
             throw e;
         } catch (RuntimeException e) {
-            this.logger().error(message(message, "[例外]", start));
+            this.logger().error(message(message, "[Exception]", start));
             throw (RuntimeException) e;
         } catch (Exception e) {
-            this.logger().error(message(message, "[例外]", start));
+            this.logger().error(message(message, "[Exception]", start));
             throw new InvocationException("error.Exception", e);
         }
     }
 
-    /** 与えた処理に対し、監査ログを記録します。 */
     public void audit(String message, final Runnable runnable) {
         this.audit(message, () -> {
             runnable.run();

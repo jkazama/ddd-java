@@ -1,20 +1,33 @@
 package sample.context.actor;
 
 /**
- * 利用者の役割を表現します。
- * 
- * @author jkazama
+ * Role of the actor.
  */
 public enum ActorRoleType {
-    /** 匿名利用者(ID等の特定情報を持たない利用者) */
+    /**
+     * Anonymous user.
+     * (the actor who does not have specific information such as the ID)
+     */
     ANONYMOUS,
-    /** 利用者(主にBtoCの顧客, BtoB提供先社員) */
+    /**
+     * User.
+     * (mainly customer of BtoC, staff of BtoB)
+     */
     USER,
-    /** 内部利用者(主にBtoCの社員, BtoB提供元社員) */
+    /**
+     * Internal User.
+     * (mainly staff of BtoC, staff manager of BtoB)
+     */
     INTERNAL,
-    /** システム管理者(ITシステム担当社員またはシステム管理会社の社員) */
+    /**
+     * System Administrator.
+     * (an IT system charge staff or staff of the system management company)
+     */
     ADMINISTRATOR,
-    /** システム(システム上の自動処理) */
+    /**
+     * System.
+     * (automatic processing on the system)
+     */
     SYSTEM;
 
     public boolean isAnonymous() {

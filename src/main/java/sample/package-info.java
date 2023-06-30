@@ -1,5 +1,4 @@
 /**
- * アプリケーションルートディレクトリ。
- * <p>Applicationクラスを実行する事でアプリケーションプロセスが立ち上がります。
+ * Root directory of the application.
  */
 package sample;

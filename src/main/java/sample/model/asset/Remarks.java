@@ -1,23 +1,21 @@
 package sample.model.asset;
 
 /**
- * 摘要定数インターフェース。
- * 
- * @author jkazama
+ * Remark constants.
  */
 public interface Remarks {
 
     /** 振込入金 */
-    String CashIn = "cashIn";
+    String CASH_IN = "cashIn";
     /** 振込入金(調整) */
-    String CashInAdjust = "cashInAdjust";
+    String CASH_IN_ADJUST = "cashInAdjust";
     /** 振込入金(取消) */
-    String CashInCancel = "cashInCancel";
+    String CASH_IN_CANCEL = "cashInCancel";
     /** 振込出金 */
-    String CashOut = "cashOut";
+    String CASH_OUT = "cashOut";
     /** 振込出金(調整) */
-    String CashOutAdjust = "cashOutAdjust";
+    String CASH_OUT_ADJUST = "cashOutAdjust";
     /** 振込出金(取消) */
-    String CashOutCancel = "cashOutCancel";
+    String CASH_OUT_CANCEL = "cashOutCancel";
 
 }

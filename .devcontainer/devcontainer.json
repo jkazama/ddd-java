@@ -6,28 +6,31 @@
 	],
 	"service": "workspace-backend",
 	"shutdownAction": "stopCompose",
-	"settings": {
-		"editor.formatOnSave": true,
-		"editor.codeActionsOnSave": {
-			"source.organizeImports": true
-		},
-		"java.jdt.ls.java.home": "/docker-java-home",
-		"java.format.settings.profile": "Google",
-		"java.format.settings.url": "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml"
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.organizeImports": true
+				},
+				"java.jdt.ls.java.home": "/docker-java-home",
+				"java.format.settings.profile": "Google",
+				"java.format.settings.url": "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml"
+			},
+			"extensions": [
+				"mhutchie.git-graph",
+				"mikestead.dotenv",
+				"EditorConfig.EditorConfig",
+				"vscjava.vscode-lombok",
+				"vscjava.vscode-java-pack",
+				"vscjava.vscode-gradle",
+				"vscjava.vscode-spring-boot-dashboard",
+				"pivotal.vscode-spring-boot",
+				"pivotal.vscode-boot-dev-pack"
+			]
+		}
 	},
 	"workspaceFolder": "/home/vscode/workspace",
-	"extensions": [
-		"mhutchie.git-graph",
-		"eamodio.gitlens",
-		"mikestead.dotenv",
-		"EditorConfig.EditorConfig",
-		"vscjava.vscode-lombok",
-		"vscjava.vscode-java-pack",
-		"vscjava.vscode-gradle",
-		"vscjava.vscode-spring-boot-dashboard",
-		"pivotal.vscode-spring-boot",
-		"pivotal.vscode-boot-dev-pack"
-	],
 	"forwardPorts": [
 		8080
 	],

@@ -10,48 +10,56 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import sample.ActionStatusType;
-import sample.EntityTestSupport;
-import sample.ValidationException;
+import sample.context.ValidationException;
+import sample.context.actor.Actor;
+import sample.context.actor.ActorSession;
+import sample.model.DataFixtures;
 import sample.model.DomainErrorKeys;
+import sample.model.DomainTester;
+import sample.model.DomainTester.DomainTesterBuilder;
 import sample.model.account.Account;
 import sample.model.asset.CashInOut.FindCashInOut;
 import sample.model.asset.CashInOut.RegCashOut;
 import sample.model.asset.Cashflow.CashflowType;
 import sample.model.master.SelfFiAccount;
+import sample.util.TimePoint;
 
-// low: 簡易な正常系検証が中心。依存するCashflow/CashBalanceの単体検証パスを前提。
-public class CashInOutTest extends EntityTestSupport {
+public class CashInOutTest {
 
     private static final String ccy = "JPY";
     private static final String accId = "test";
     private static final LocalDate baseDay = LocalDate.of(2014, 11, 18);
 
-    @Override
-    protected void setupPreset() {
-        targetEntities(Account.class, SelfFiAccount.class, CashInOut.class);
+    private DomainTester tester;
+
+    @BeforeEach
+    public void before() {
+        tester = DomainTesterBuilder.from(Account.class, SelfFiAccount.class, CashInOut.class).build();
+        tester.txInitializeData(rep -> {
+            rep.save(DataFixtures.selfFiAcc(Remarks.CASH_OUT, ccy));
+            rep.save(DataFixtures.acc(accId));
+            rep.save(DataFixtures.fiAcc(accId, Remarks.CASH_OUT, ccy));
+            rep.save(DataFixtures.cb(accId, baseDay, ccy, "1000"));
+        });
     }
 
-    @Override
-    protected void before() {
-        tx(() -> {
-            fixtures.selfFiAcc(Remarks.CashOut, ccy).save(rep);
-            // 残高1000円の口座(test)を用意
-            fixtures.acc(accId).save(rep);
-            fixtures.fiAcc(accId, Remarks.CashOut, ccy).save(rep);
-            fixtures.cb(accId, baseDay, ccy, "1000").save(rep);
-        });
+    @AfterEach
+    public void after() {
+        tester.close();
     }
 
     @Test
     public void find() {
-        tx(() -> {
-            CashInOut cio = fixtures.cio(accId, "300", true);
+        tester.tx(rep -> {
+            TimePoint now = rep.dh().time().tp();
+            CashInOut cio = DataFixtures.cio("1", accId, "300", true, now);
             cio.setEventDay(LocalDate.of(2014, 11, 18));
-            cio.save(rep);
-            // low: ちゃんとやると大変なので最低限の検証
+            rep.save(cio);
             assertEquals(
                     1,
                     CashInOut.find(rep, findParam(LocalDate.of(2014, 11, 18), LocalDate.of(2014, 11, 19))).size());
@@ -82,8 +90,8 @@ public class CashInOutTest extends EntityTestSupport {
 
     @Test
     public void withdrawal() {
-        tx(() -> {
-            // 超過の出金依頼 [例外]
+        tester.tx(rep -> {
+            ActorSession.bind(Actor.builder().id(accId).build());
             try {
                 CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("1001")));
                 fail();
@@ -91,7 +99,6 @@ public class CashInOutTest extends EntityTestSupport {
                 assertEquals(AssetErrorKeys.CIO_WITHDRAWAL_AMOUNT, e.getMessage());
             }
 
-            // 0円出金の出金依頼 [例外]
             try {
                 CashInOut.withdraw(rep, new RegCashOut(accId, ccy, BigDecimal.ZERO));
                 fail();
@@ -99,7 +106,6 @@ public class CashInOutTest extends EntityTestSupport {
                 assertEquals("error.domain.AbsAmount.zero", e.getMessage());
             }
 
-            // 通常の出金依頼
             CashInOut normal = CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("300")));
             assertEquals(accId, normal.getAccountId());
             assertEquals(ccy, normal.getCurrency());
@@ -108,9 +114,9 @@ public class CashInOutTest extends EntityTestSupport {
             assertEquals(baseDay, normal.getRequestDay());
             assertEquals(baseDay, normal.getEventDay());
             assertEquals(LocalDate.of(2014, 11, 21), normal.getValueDay());
-            assertEquals(Remarks.CashOut + "-" + ccy, normal.getTargetFiCode());
+            assertEquals(Remarks.CASH_OUT + "-" + ccy, normal.getTargetFiCode());
             assertEquals("FI" + accId, normal.getTargetFiAccountId());
-            assertEquals(Remarks.CashOut + "-" + ccy, normal.getSelfFiCode());
+            assertEquals(Remarks.CASH_OUT + "-" + ccy, normal.getSelfFiCode());
             assertEquals("xxxxxx", normal.getSelfFiAccountId());
             assertEquals(ActionStatusType.UNPROCESSED, normal.getStatusType());
             assertNull(normal.getCashflowId());
@@ -127,15 +133,16 @@ public class CashInOutTest extends EntityTestSupport {
 
     @Test
     public void cancel() {
-        tx(() -> {
-            // CF未発生の依頼を取消
-            CashInOut normal = fixtures.cio(accId, "300", true).save(rep);
+        tester.tx(rep -> {
+            TimePoint tp = rep.dh().time().tp();
+            // Cancel a request of the CF having not yet processed
+            CashInOut normal = rep.save(DataFixtures.cio("1", accId, "300", true, tp));
             assertEquals(ActionStatusType.CANCELLED, normal.cancel(rep).getStatusType());
 
-            // 発生日を迎えた場合は取消できない [例外]
-            CashInOut today = fixtures.cio(accId, "300", true);
+            // When Reach an event day, I cannot cancel it. [ValidationException]
+            CashInOut today = DataFixtures.cio("2", accId, "300", true, tp);
             today.setEventDay(LocalDate.of(2014, 11, 18));
-            today.save(rep);
+            rep.save(today);
             rep.flushAndClear();
             try {
                 today.cancel(rep);
@@ -148,15 +155,16 @@ public class CashInOutTest extends EntityTestSupport {
 
     @Test
     public void error() {
-        tx(() -> {
-            CashInOut normal = fixtures.cio(accId, "300", true).save(rep);
+        tester.tx(rep -> {
+            TimePoint tp = rep.dh().time().tp();
+            CashInOut normal = rep.save(DataFixtures.cio("1", accId, "300", true, tp));
             assertEquals(ActionStatusType.ERROR, normal.error(rep).getStatusType());
 
-            // 処理済の時はエラーにできない [例外]
-            CashInOut today = fixtures.cio(accId, "300", true);
+            // When it is processed, an error cannot do it. [ValidationException]
+            CashInOut today = rep.save(DataFixtures.cio("2", accId, "300", true, tp));
             today.setEventDay(LocalDate.of(2014, 11, 18));
             today.setStatusType(ActionStatusType.PROCESSED);
-            today.save(rep);
+            rep.save(today);
             try {
                 today.error(rep);
                 fail();
@@ -168,9 +176,10 @@ public class CashInOutTest extends EntityTestSupport {
 
     @Test
     public void process() {
-        tx(() -> {
-            // 発生日未到来の処理 [例外]
-            CashInOut future = fixtures.cio(accId, "300", true).save(rep);
+        tester.tx(rep -> {
+            TimePoint tp = rep.dh().time().tp();
+            // It is handled non-arrival on an event day [ValidationException]
+            CashInOut future = rep.save(DataFixtures.cio("1", accId, "300", true, tp));
             try {
                 future.process(rep);
                 fail();
@@ -178,21 +187,21 @@ public class CashInOutTest extends EntityTestSupport {
                 assertEquals(AssetErrorKeys.CIO_EVENT_DAY_AFTER_EQUALS_DAY, e.getMessage());
             }
 
-            // 発生日到来処理
-            CashInOut normal = fixtures.cio(accId, "300", true);
+            // Event day arrival processing.
+            CashInOut normal = DataFixtures.cio("2", accId, "300", true, tp);
             normal.setEventDay(LocalDate.of(2014, 11, 18));
-            normal.save(rep);
+            rep.save(normal);
             CashInOut processed = normal.process(rep);
             assertEquals(ActionStatusType.PROCESSED, processed.getStatusType());
             assertNotNull(processed.getCashflowId());
 
-            // 発生させたキャッシュフローの検証
+            // Check the Cashflow that CashInOut produced.
             Cashflow cf = Cashflow.load(rep, normal.getCashflowId());
             assertEquals(accId, cf.getAccountId());
             assertEquals(ccy, cf.getCurrency());
             assertEquals(new BigDecimal("-300"), cf.getAmount());
-            assertEquals(CashflowType.CashOut, cf.getCashflowType());
-            assertEquals(Remarks.CashOut, cf.getRemark());
+            assertEquals(CashflowType.CASH_OUT, cf.getCashflowType());
+            assertEquals(Remarks.CASH_OUT, cf.getRemark());
             assertEquals(LocalDate.of(2014, 11, 18), cf.getEventDay());
             assertEquals(LocalDate.of(2014, 11, 21), cf.getValueDay());
             assertEquals(ActionStatusType.UNPROCESSED, cf.getStatusType());

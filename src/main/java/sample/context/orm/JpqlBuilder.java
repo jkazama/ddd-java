@@ -13,12 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.util.StringUtils;
 
-/**
- * 簡易にJPQLを生成するためのビルダー。
- * <p>
- * 条件句の動的条件生成に特化させています。
- */
-public class JpqlBuilder {
+public final class JpqlBuilder {
     private final StringBuilder jpql;
     private final AtomicInteger index;
     private final List<String> conditions = new ArrayList<>();
@@ -37,11 +32,6 @@ public class JpqlBuilder {
         add(staticCondition);
     }
 
-    /**
-     * 条件句を追加します。
-     * <p>
-     * 値を設定する際は ? へ番号を付与しないでください。(自動的に追加されます)
-     */
     public JpqlBuilder condition(String condition, Object... values) {
         if (StringUtils.hasText(condition)) {
             int count = StringUtils.countOccurrencesOf(condition, "?");
@@ -172,6 +162,21 @@ public class JpqlBuilder {
     }
 
     /** between条件を付与します。 */
+    public JpqlBuilder between(String field, Number from, Number to) {
+        if (from != null && to != null) {
+            conditions.add(String.format(
+                    "%s BETWEEN ?%d AND ?%d", field, index.getAndIncrement(), index.getAndIncrement()));
+            args.add(from);
+            args.add(to);
+        } else if (from != null) {
+            gte(field, from);
+        } else if (to != null) {
+            lte(field, to);
+        }
+        return this;
+    }
+
+    /** between条件を付与します。 */
     public JpqlBuilder between(String field, LocalDateTime from, LocalDateTime to) {
         if (from != null && to != null) {
             conditions.add(String.format(
@@ -202,7 +207,7 @@ public class JpqlBuilder {
     }
 
     /** [フィールド]&gt;=[値] 条件を付与します。(値がnullの時は無視されます) */
-    public <Y extends Comparable<? super Y>> JpqlBuilder gte(String field, final Y value) {
+    public <Y> JpqlBuilder gte(String field, final Y value) {
         return ifValid(value, () -> {
             conditions.add(String.format("%s >= ?%d", field, index.getAndIncrement()));
             args.add(value);
@@ -210,7 +215,7 @@ public class JpqlBuilder {
     }
 
     /** [フィールド]&gt;[値] 条件を付与します。(値がnullの時は無視されます) */
-    public <Y extends Comparable<? super Y>> JpqlBuilder gt(String field, final Y value) {
+    public <Y> JpqlBuilder gt(String field, final Y value) {
         return ifValid(value, () -> {
             conditions.add(String.format("%s > ?%d", field, index.getAndIncrement()));
             args.add(value);
@@ -218,7 +223,7 @@ public class JpqlBuilder {
     }
 
     /** [フィールド]&lt;=[値] 条件を付与します。 */
-    public <Y extends Comparable<? super Y>> JpqlBuilder lte(String field, final Y value) {
+    public <Y> JpqlBuilder lte(String field, final Y value) {
         return ifValid(value, () -> {
             conditions.add(String.format("%s <= ?%d", field, index.getAndIncrement()));
             args.add(value);
@@ -226,7 +231,7 @@ public class JpqlBuilder {
     }
 
     /** [フィールド]&lt;[値] 条件を付与します。 */
-    public <Y extends Comparable<? super Y>> JpqlBuilder lt(String field, final Y value) {
+    public <Y> JpqlBuilder lt(String field, final Y value) {
         return ifValid(value, () -> {
             conditions.add(String.format("%s < ?%d", field, index.getAndIncrement()));
             args.add(value);

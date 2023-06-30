@@ -7,21 +7,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.stereotype.Component;
 
-import sample.InvocationException;
+import sample.context.InvocationException;
 
 /**
- * ID単位のロックを表現します。
- * low: ここではシンプルに口座単位のIDロックのみをターゲットにします。
- * low: 通常はDBのロックテーブルに"for update"要求で悲観的ロックをとったりしますが、サンプルなのでメモリロックにしてます。
- * 
- * @author jkazama
+ * The lock of the ID unit.
+ * low: It is simple and targets only the ID lock of the account unit here.
+ * low: You take the pessimistic lock by "for update" demand on a lock table of
+ * DB,
+ * but usually do it to memory lock because it is a sample.
  */
 @Component
 public class IdLockHandler {
 
     private ConcurrentMap<Object, ReentrantReadWriteLock> lockMap = new ConcurrentHashMap<>();
 
-    /** IDロック上で処理を実行します。 */
     public <T> T call(Object id, LockType lockType, final Callable<T> callable) {
         if (lockType.isWrite()) {
             this.writeLock(id);
@@ -39,7 +38,6 @@ public class IdLockHandler {
         }
     }
 
-    /** IDロック上で処理を実行します。 */
     public void call(Object id, LockType lockType, final Runnable runnable) {
         this.call(id, lockType, () -> {
             runnable.run();
@@ -78,15 +76,8 @@ public class IdLockHandler {
         }
     }
 
-    /**
-     * ロック種別を表現するEnum。
-     *
-     * @author jkazama
-     */
     public static enum LockType {
-        /** 読み取り専用ロック */
         READ,
-        /** 読み書き専用ロック */
         WRITE;
 
         public boolean isRead() {
@@ -98,7 +89,6 @@ public class IdLockHandler {
         }
     }
 
-    /** IdLock の対象と種別のペアを表現します。 */
     public static record IdLockPair(Object id, LockType lockType) {
     }
 

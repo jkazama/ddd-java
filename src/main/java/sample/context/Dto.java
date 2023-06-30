@@ -1,19 +1,18 @@
 package sample.context;
 
 /**
- * DTO(Data Transfer Object)を表現するマーカーインターフェース。
+ * A marker interface to DTO(Data Transfer Object).
  * 
  * <p>
- * 本インターフェースを継承するDTOは、層(レイヤー)間をまたいで情報を取り扱い可能に
- * する役割を持ち、次の責務を果たします。
+ * You have a role to step over DTO in succession to this interface between
+ * layers,
+ * and to deal with information, and to enable and carry out the next duty.
  * <ul>
- * <li>複数の情報の取りまとめによる通信コストの軽減
- * <li>可変情報の集約
- * <li>ドメイン情報の転送
- * <li>ドメインロジックを持たない、シンプルなバリューオブジェクトの転送
+ * <li>Reduction of the communication cost by the report of plural information.
+ * <li>The collection of the variable information.
+ * <li>Transfer of the domain information.
+ * <li>Transfer of the simple value object which does not have a domain logic.
  * </ul>
- * 
- * @author jkazama
  */
 public interface Dto {
 

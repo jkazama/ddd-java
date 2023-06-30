@@ -10,49 +10,44 @@ import sample.model.constraints.ISODate;
 import sample.model.constraints.ISODateTime;
 
 /**
- * 日付と日時のペアを表現します。
+ * Pair of a date and the date and time.
  * <p>
- * 0:00に営業日切り替えが行われないケースなどでの利用を想定しています。
- * 
- * @author jkazama
+ * A business day uses it with the case which is not 0:00.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class TimePoint {
-    /** 日付(営業日) */
     @ISODate
     private LocalDate day;
-    /** 日付におけるシステム日時 */
     @ISODateTime
     private LocalDateTime date;
 
-    /** 指定日付と同じか。(day == targetDay) */
+    /** day == targetDay */
     public boolean equalsDay(LocalDate targetDay) {
         return day.equals(targetDay);
     }
 
-    /** 指定日付よりも前か。(day < targetDay) */
+    /** day < targetDay */
     public boolean beforeDay(LocalDate targetDay) {
         return day.isBefore(targetDay);
     }
 
-    /** 指定日付以前か。(day <= targetDay) */
+    /** day <= targetDay */
     public boolean beforeEqualsDay(LocalDate targetDay) {
         return equalsDay(targetDay) || beforeDay(targetDay);
     }
 
-    /** 指定日付よりも後か。(targetDay < day) */
+    /** targetDay < day */
     public boolean afterDay(LocalDate targetDay) {
         return day.isAfter(targetDay);
     }
 
-    /** 指定日付以降か。(targetDay <= day) */
+    /** targetDay <= day */
     public boolean afterEqualsDay(LocalDate targetDay) {
         return equalsDay(targetDay) || afterDay(targetDay);
     }
 
-    /** 日付を元にTimePointを生成します。 */
     public static TimePoint of(LocalDate day) {
         return new TimePoint(day, DateUtils.dateByDay(day));
     }

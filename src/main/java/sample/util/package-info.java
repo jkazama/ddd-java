@@ -1,4 +1,4 @@
 /**
- * 汎用的なユーティリティクラスを管理します。
+ * Application Utilities.
  */
 package sample.util;

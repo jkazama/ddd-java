@@ -16,11 +16,6 @@ import org.springframework.format.annotation.DateTimeFormat.ISO;
 
 import jakarta.validation.Payload;
 
-/**
- * ISOフォーマットの日時を表現する制約注釈。
- * <p>
- * LocalDateTime(yyyy-MM-dd'T'HH:mm:ss.SSSZ)を想定します。
- */
 @Documented
 @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
 @Retention(RUNTIME)

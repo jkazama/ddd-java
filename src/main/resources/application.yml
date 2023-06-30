@@ -19,7 +19,6 @@ server:
 
 management:
   endpoints.web:
-    base-path: /management
     exposure.include: ${MANAGEMENT_EXPOSURE:health,info}
 
 sample:

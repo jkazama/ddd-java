@@ -1,9 +1,9 @@
-package sample;
+package sample.context;
 
 /**
- * 処理時の実行例外を表現します。
- * 
- * @author jkazama
+ * Application's runtime exception.
+ * <p>
+ * use it for the purpose of wrapping the system exception that cannot restore.
  */
 public class InvocationException extends RuntimeException {
 
