@@ -1,50 +1,38 @@
 package sample.usecase.report;
 
 import org.springframework.context.MessageSource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import sample.context.orm.JpaRepository.DefaultRepository;
+import lombok.RequiredArgsConstructor;
+import sample.context.orm.OrmRepository.DefaultRepository;
 import sample.context.report.ReportHandler;
 import sample.model.asset.CashInOut.FindCashInOut;
 
 /**
- * アプリケーション層のレポート出力を行います。
- * <p>独自にトランザクションを管理するので、サービスのトランザクション内で
- * 呼び出さないように注意してください。
- * low: コード量が多くなるため今回のサンプルでは対象外とします。
- * 
- * @author jkazama
+ * Report exporter of the application layer.
+ * <p>
+ * Manage the transaction originally, please be careful not to call it in the
+ * transaction of the service.
  */
 @Component
+@RequiredArgsConstructor
 @SuppressWarnings("unused")
 public class ServiceReportExporter {
-
     private final MessageSource msg;
     private final DefaultRepository rep;
     private final PlatformTransactionManager tx;
-    private final ReportHandler report; //low: サンプルでは未実装なので利用しない
+    private final ReportHandler report; // low: It is not used because it is not implemented in the sample
 
-    public ServiceReportExporter(
-            MessageSource msg,
-            DefaultRepository rep,
-            PlatformTransactionManager tx,
-            ReportHandler report) {
-        this.msg = msg;
-        this.rep = rep;
-        this.tx = tx;
-        this.report = report;
+    public ByteArrayResource exportCashInOut(final FindCashInOut p) {
+        // low: Binary generation. Assumes an online download that allows you to specify
+        // conditions.
+        return new ByteArrayResource(new byte[0]);
     }
 
-    /**　振込入出金情報をCSV出力します。 */
-    public byte[] exportCashInOut(final FindCashInOut p) {
-        //low: バイナリ生成。条件指定を可能にしたオンラインダウンロードを想定。
-        return new byte[0];
-    }
-
-    /**　振込入出金情報を帳票出力します。 */
     public void exportFileCashInOut(String baseDay) {
-        //low: 特定のディレクトリへのファイル出力。ジョブ等での利用を想定
+        // low: File output to a specific directory. Assume use in jobs etc
     }
 
 }

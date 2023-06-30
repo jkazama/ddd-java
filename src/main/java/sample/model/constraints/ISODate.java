@@ -19,11 +19,6 @@ import jakarta.validation.Payload;
 import jakarta.validation.ReportAsSingleViolation;
 import jakarta.validation.constraints.NotNull;
 
-/**
- * ISOフォーマットの日付(必須)を表現する制約注釈。
- * <p>
- * YYYY-MM-DDを想定します。
- */
 @Documented
 @Constraint(validatedBy = {})
 @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })

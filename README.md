@@ -1,166 +1,138 @@
-[English Version](https://github.com/jkazama/ddd-java/tree/en)
-
 ddd-java
 ---
 
-## はじめに
+### Preface
 
-JSUG(日本Springユーザ会)の下記勉強会向けのサンプル実装です。  
+It is DDD sample implementation from [Spring Boot](http://projects.spring.io/spring-boot/).  
+It is not a framework, This is a simple example of the implementation based on Evans's DDD.
 
-- 2014/11/27 「SpringBootを用いたドメイン駆動設計」
 
-> Spring Boot 3 の利用に伴い実装コードを Java17 へ切り替えています。 Java7 での実装コードを確認したいときは 1.x ブランチを参照してください。
+#### Concept of Layering
 
-本サンプルでは[SpringBoot](http://projects.spring.io/spring-boot/)と[Lombok](http://projectlombok.org/)を利用してドメインモデリングの実装例を示します。実際に2007年くらいから現在に至るまで現場で利用されている実装アプローチなので、参考例の一つとしてみてもらえればと思います。  
-※JavaDocに記載をしていますが、サンプルに特化させているので実際の製品コードが含まれているわけではありません。
+It is three levels of famous models, but considers the infrastructure layer as cross-sectional interpretation.
 
-認証含む、より実践的な実装サンプルについては[sample-boot-hibernate](https://github.com/jkazama/sample-boot-hibernate)を参照してください。  
-またUI側の実装サンプルについては[sample-ui-vue](https://github.com/jkazama/sample-ui-vue) / [sample-ui-react](https://github.com/jkazama/sample-ui-react)を参照してください。
+| Layer          |                                                            |
+| -------------- | ----------------------------------------------------------- |
+| UI             | Receive use case request                                    |
+| Application    | Use case processing (including the outside resource access) |
+| Domain         | Pure domain logic (not depend on the outside resource) |
+| Infrastructure | DI container and ORM, various libraries |
 
-### レイヤリングの考え方
+Usually perform public handling of UI layer using Thymeleaf, but this sample assume use of different types of clients and perform only API offer in RESTfulAPI.
 
-オーソドックスな三層モデルですが、横断的な解釈としてインフラ層を考えます。
+#### Use policy of Spring Boot
 
-- UI層 - ユースケース処理を公開(必要に応じてリモーティングや外部サイトを連携)
-- アプリケーション層 - ユースケース処理を集約(外部リソースアクセスも含む)
-- ドメイン層 - 純粋なドメイン処理(外部リソースに依存しない)
-- インフラ層 - DIコンテナやORM、各種ライブラリ、メッセージリソースの提供
+Spring Boot is available for various usage, but uses it in the following policy with this sample.
 
-UI層の公開処理は通常Thymeleafを用いて行いますが、本サンプルでは異なる種類のクライアント利用を想定してRESTfulAPIでの公開を前提とします。(API利用前提のサーバ解釈)
+- Use standard definitions as much as possible, such as DB settings.
+- The configuration file uses yml. do not use xml files for Bean definition.
+- The exception handling defines it in a endpoint (RestErrorAdvice).
 
-### SpringBootの利用方針
+#### Use policy of Java coding
 
-SpringBootは様々な利用方法が可能ですが、本サンプルでは以下のポリシーを用います。
+- Java17 over
+- Use Lombok positively and remove diffuseness.
+- The name as possible briefly.
+- Do not abuse the interface.
+- DTO becoming a part of the domain defines it in an internal class.
 
-- DBの設定等、なるべく標準定義をそのまま利用する。
-- 設定ファイルはymlを用いる。Bean定義にxml等の拡張ファイルは用いない。
-- ライブラリ化しないので@Beanによる将来拡張性を考慮せずにクラス単位でBeanベタ登録。
-- 例外処理は終端(RestErrorAdvice/RestErrorCotroller)で定義。
-- サンプル用途
+#### Resource
 
-### Javaコーディング方針
-
-Java17以上を前提としていますが、従来のJavaで推奨される記法と異なっている観点も多いです。  
-以下は保守性を意識した上で簡潔さを重視した方針となっています。
-
-- Lombokを積極的に利用して冗長さを排除
-- 名称も既存クラスと重複しても良いのでなるべく簡潔に
-- インターフェースの濫用をしない
-- ドメインの一部となるDTOなどは内部クラスで表現
-
-### パッケージ構成
-
-パッケージ/リソース構成については以下を参照してください。
+Refer to the following for the package / resource constitution.
 
 ```
 main
   java
     sample
-      context                         … インフラ層
-      controller                      … UI層
-      model                           … ドメイン層
-      usecase                         … アプリケーション層
-      util                            … 汎用ユーティリティ
-      - Application.java              … 実行可能な起動クラス
+      context                         … Infrastructure Layer
+      controller                      … UI Layer
+      model                           … Domain Layer
+      usecase                         … Application Layer
+      util                            … Utilities
+      - Application.java              … Bootstrap
   resources
-    - application.yml                 … 設定ファイル
-    - messages-validation.properties  … 例外メッセージリソース
-    - messages.properties             … メッセージリソース
+    - application.yml                 … Spring Boot Configuration
+    - messages-validation.properties  … Validation Message Resources
+    - messages.properties             … Label Message Resources
 ```
 
-## サンプルユースケース
+## Use Case
 
-サンプルユースケースとしては以下を想定します。
+Consider the following as a sample use case.
 
-- **口座残高100万円を持つ顧客**が出金依頼(発生 T, 受渡 T + 3)をする。
-- **システム**が営業日を進める。
-- **システム**が出金依頼を確定する。(確定させるまでは依頼取消行為を許容)
-- **システム**が受渡日を迎えた入出金キャッシュフローを口座残高へ反映する。
+- A customer with an account balance requests withdrawal. (Event T, Delivery T + 3)
+- The system closes the withdrawal request. (Allows cancellation of request until closing)
+- The system sets the business day to the forward day.
+- The system reflects the cash flow on delivery date to the account balance.
 
-## 動作確認
+### Getting Started
 
-サンプルはGradleを利用しているので、IDEやコンソールで動作確認を行うことができます。
+This sample uses [Gradle](https://gradle.org/), you can check the operation without trouble with IDE and a console.
 
-### VSCode
+#### Server Start (VSCode DevContainer)
 
-開発IDEである[VSCode](https://code.visualstudio.com)で本サンプルを利用するには、事前に以下の手順を行っておく必要があります。
+It is necessary to do the following step.
 
-- Java17以上のインストール
-    - DevContainer 利用時は不要
-- Java / Lombok / Gradle の Extension 追加
+- Check Instablled Docker.
+- Check Instablled VSCode with DevContainer Extension.
 
-次の手順で本サンプルをプロジェクト化してください。  
+Do the preparations for this sample in the next step.
 
-1. ダウンロードした*java-ddd*ディレクトリ直下へコンソールで移動
-1. 「code .」で起動
+1. You move to the cloned *ddd-java* directory.
+1. Run command `code .`.
+1. Choose *Open Container*
 
-次の手順で本サンプルを実行してください。
+Do the server start in the next step.
 
-1. 左サイドメニューの「Run And Debug」で *Run ddd-java* を選択肢て実行 
-1. *DEBUG CONSOLE*タブに「Started Application」という文字列が出力されればポート8080で起動が完了
+1. Open VSCode "Run And Debug".
+1. Choose `Run ddd-java`.
+1. If console show "Started Application", start is completed in port 8080.
+1. Run command `curl http://localhost:8080/actuator/health`
 
-> Linux や WSL 上で DevContainer を立ち上げて確認することも可能です。 Open Container のダイアログが出たらOKを押下してください。
-> DevContainer の起動に失敗する時はポート重複が無いか、vscode-remote-release の [#7303](https://github.com/microsoft/vscode-remote-release/issues/7303) の問題を踏んでいないか確認してください。 #7303 の問題だった時は Extension の DevContainers を `v0.251.0` へ下げることでうまくいくことがあります。
+#### Server Start (Console)
 
-### STS(Eclipse)
+Run application from a console of Windows / Mac in Gradle.
 
-開発IDEである[STS](https://spring.io/tools/sts)で本サンプルを利用するには、事前に以下の手順を行っておく必要があります。
-※EclipseにSpringIDEプラグインを入れても可
+It is necessary to do the following step.
 
-- Java17以上のインストール
-- [Lombok](http://projectlombok.org/download.html)のパッチ当て(.jarを実行してインストーラの指示通りに実行)
+- Check Instablled JDK17+.
 
-次の手順で本サンプルをプロジェクト化してください。  
-※コンパイルエラーになる時は、Javaコンパイラの設定が17以上になっているかを確認してください。
+Do the server start in the next step.
 
-1. パッケージエクスプローラから「右クリック -> Import」で*Exsisting Project into Workspace*を選択して*Next*を押下
-1. *Root folder:*にダウンロードした*ddd-java*ディレクトリを指定して*Build Model*を押下
-1. *Project*で*ddd-java*を選択後、*Finish*を押下(依存ライブラリダウンロードがここで行われます)
+1. You move to the cloned *ddd-java* directory.
+1. Run command `gradlew bootRun`.
+1. If console show "Started Application", start is completed in port 8080
+1. Run command `curl http://localhost:8080/actuator/health`
 
-次の手順で本サンプルを実行してください。
+### Check Use Case
 
-1. *Application.java*に対し「右クリック -> Run As -> Java Application」
-1. *Console*タブに「Started Application」という文字列が出力されればポート8080で起動が完了
+After launching the server on port 8080, you can test execution of RESTful API by accessing the following URL from console.
 
-### コンソール
+#### Customer Use Case
 
-Windows/Macのコンソールから実行するにはGradleのコンソールコマンドで行います。  
-※事前にJava17以上のインストールが必要です。
+- `curl -X POST -H "Content-Type: application/json" -d '{"accountId"  : "sample" , "currency" : "JPY", "absAmount": 1000}' http://localhost:8080/asset/cio/withdraw`
+    - Request for withdrawal.
+- `curl 'http://localhost:8080/asset/cio/unprocessedOut'`
+    - Search for outstanding withdrawal requests
 
-1. ダウンロードした*java-ddd*ディレクトリ直下へコンソールで移動
-1. 「gradlew bootRun」を実行
-1. コンソールに「Started Application」という文字列が出力されればポート8080で起動が完了
+#### Internal Use Case
 
+- `curl 'http://localhost:8080/admin/asset/cio?updFromDay=yyyy-MM-dd&updToDay=yyyy-MM-dd'`
+    - Search for deposit and withdrawal requests.
+    - Please set real date for upd\*Day
 
-### ブラウザ
+#### Batch Use Case
 
-STSまたはコンソールで8080ポートでサーバを立ち上げた後、ブラウザから下記URLへアクセスする事でRESTfulAPIの実行テストを実施可能です。  
-※本来なら情報更新系処理はPOSTで取り扱うべきですが、UIの無いデモ用にGETでのアクセスを許容しています。  
-※パラメタは?key=valueで繋げて渡してください。
+- `curl -X POST http://localhost:8080/system/job/daily/closingCashOut`
+    - Close the withdrawal request.
+- `curl -X POST http://localhost:8080/system/job/daily/processDay`
+    - Set the business day to the next day.
+- `curl -X POST http://localhost:8080/system/job/daily/realizeCashflow`
+    - Realize cash flow. (Reflected to the balance on the delivery date)
 
-顧客向けユースケース
+> Please execute according to the business day appropriately
 
-- http://localhost:8080/asset/cio/withdraw
-    - 振込出金依頼 [accountId: sample, currency: JPY, absAmount: 出金依頼金額]
-- http://localhost:8080/asset/cio/unprocessedOut
-    - 振込出金依頼未処理検索
+### License
 
-社内向けユースケース
-
-- http://localhost:8080/admin/asset/cio
-    - 振込入出金依頼検索 [updFromDay: 更新From(yyyyMMdd), updToDay: 更新To(yyyyMMdd)]
-
-バッチ向けユースケース
-
-- http://localhost:8080/system/job/daily/processDay
-    - 営業日を進める(単純日回しのみ)
-- http://localhost:8080/system/job/daily/closingCashOut 
-    - 当営業日の出金依頼を締める
-- http://localhost:8080/system/job/daily/realizeCashflow
-    - 入出金キャッシュフローを実現する(受渡日に残高へ反映)
-
-
-## License
-
-本サンプルのライセンスはコード含めて全て*MIT License*です。  
-Spring Bootを用いたプロジェクト立ち上げ時のベース実装サンプルとして気軽にご利用ください。
+The license of this sample includes a code and is all *MIT License*.
+Use it as a base implementation at the time of the project start using Spring Boot.

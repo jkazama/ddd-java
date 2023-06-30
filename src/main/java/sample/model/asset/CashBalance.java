@@ -9,12 +9,9 @@ import java.util.List;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import sample.context.orm.JpaActiveRecord;
-import sample.context.orm.JpaRepository;
+import sample.context.DomainEntity;
+import sample.context.orm.OrmRepository;
 import sample.model.constraints.AccountId;
 import sample.model.constraints.Amount;
 import sample.model.constraints.Currency;
@@ -24,55 +21,45 @@ import sample.util.Calculator;
 import sample.util.TimePoint;
 
 /**
- * 口座残高を表現します。
- * 
- * @author jkazama
+ * The account balance.
  */
 @Entity
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class CashBalance extends JpaActiveRecord<CashBalance> {
+public class CashBalance implements DomainEntity {
 
-    private static final long serialVersionUID = 1L;
-
-    /** ID */
     @Id
     @GeneratedValue
     private Long id;
-    /** 口座ID */
     @AccountId
     private String accountId;
-    /** 基準日 */
     @ISODate
     private LocalDate baseDay;
-    /** 通貨 */
     @Currency
     private String currency;
-    /** 金額 */
     @Amount
     private BigDecimal amount;
-    /** 更新日 */
     @ISODateTime
     private LocalDateTime updateDate;
 
     /**
-     * 残高へ指定した金額を反映します。
-     * low ここではCurrencyを使っていますが、実際の通貨桁数や端数処理定義はDBや設定ファイル等で管理されます。
+     * low: Use Currency here, but the real number of the currency figures and
+     * fraction processing definition
+     * are managed with DB or the configuration file.
      */
-    public CashBalance add(final JpaRepository rep, BigDecimal addAmount) {
+    public CashBalance add(final OrmRepository rep, BigDecimal addAmount) {
         int scale = java.util.Currency.getInstance(currency).getDefaultFractionDigits();
         RoundingMode mode = RoundingMode.DOWN;
         setAmount(Calculator.init(amount).scale(scale, mode).add(addAmount).decimal());
-        return update(rep);
+        return rep.update(this);
     }
 
     /**
-     * 指定口座の残高を取得します。(存在しない時は繰越保存後に取得します)
-     * low: 複数通貨の適切な考慮や細かい審査は本筋でないので割愛。
+     * Acquire the balance of the designated account.
+     * (when I do not exist, acquire it after carrying forward preservation)
+     * low: The appropriate consideration and examination of multiple currencies are
+     * omitted.
      */
-    public static CashBalance getOrNew(final JpaRepository rep, String accountId, String currency) {
+    public static CashBalance getOrNew(final OrmRepository rep, String accountId, String currency) {
         LocalDate baseDay = rep.dh().time().day();
         var jpql = """
                 FROM CashBalance cb
@@ -87,7 +74,7 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
         }
     }
 
-    private static CashBalance create(final JpaRepository rep, String accountId, String currency) {
+    private static CashBalance create(final OrmRepository rep, String accountId, String currency) {
         TimePoint now = rep.dh().time().tp();
         var jpql = """
                 FROM CashBalance cb
@@ -96,10 +83,22 @@ public class CashBalance extends JpaActiveRecord<CashBalance> {
                 """;
         List<CashBalance> list = rep.tmpl().find(jpql, accountId, currency);
         if (list.isEmpty()) {
-            return new CashBalance(null, accountId, now.getDay(), currency, BigDecimal.ZERO, now.getDate()).save(rep);
-        } else { // 残高繰越
+            var m = new CashBalance();
+            m.setAccountId(accountId);
+            m.setBaseDay(now.getDay());
+            m.setCurrency(currency);
+            m.setAmount(BigDecimal.ZERO);
+            m.setUpdateDate(now.getDate());
+            return rep.save(m);
+        } else { // roll over
             var prev = list.get(0);
-            return new CashBalance(null, accountId, now.getDay(), currency, prev.getAmount(), now.getDate()).save(rep);
+            var m = new CashBalance();
+            m.setAccountId(accountId);
+            m.setBaseDay(now.getDay());
+            m.setCurrency(currency);
+            m.setAmount(prev.getAmount());
+            m.setUpdateDate(now.getDate());
+            return rep.save(m);
         }
     }
 

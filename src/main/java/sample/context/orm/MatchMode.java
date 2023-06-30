@@ -1,6 +1,5 @@
 package sample.context.orm;
 
-/** LIKE 句で利用されるパターンを表現します。 */
 public enum MatchMode {
     ANYWHERE,
     END,

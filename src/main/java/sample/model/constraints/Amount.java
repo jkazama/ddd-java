@@ -18,11 +18,6 @@ import jakarta.validation.ReportAsSingleViolation;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 
-/**
- * 金額(必須)を表現する制約注釈。
- * 
- * @author jkazama
- */
 @Documented
 @Constraint(validatedBy = {})
 @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })

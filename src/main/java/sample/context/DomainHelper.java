@@ -1,42 +1,45 @@
 package sample.context;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import sample.context.actor.Actor;
 import sample.context.actor.ActorSession;
+import sample.context.spring.ObjectProviderAccessor;
 import sample.context.uid.IdGenerator;
 
 /**
- * ドメイン処理を行う上で必要となるインフラ層コンポーネントへのアクセサを提供します。
- * 
- * @author jkazama
+ * The access to the domain infrastructure layer component which is necessary in
+ * handling it.
  */
-@Component
-@RequiredArgsConstructor
-public class DomainHelper {
-    private final Timestamper time;
-    private final IdGenerator uid;
+public interface DomainHelper {
 
-    /**
-     * @return ログイン中のユースケース利用者
-     */
-    public Actor actor() {
+    /** Return a login user. */
+    default Actor actor() {
         return ActorSession.actor();
     }
 
-    /**
-     * @return 日時ユーティリティ
-     */
-    public Timestamper time() {
-        return time;
-    }
+    Timestamper time();
 
-    /**
-     * @return ID生成ユーティリティ
-     */
-    public IdGenerator uid() {
-        return uid;
+    IdGenerator uid();
+
+    @Component
+    @RequiredArgsConstructor
+    public static class DomainHelperImpl implements DomainHelper {
+        private final ObjectProvider<Timestamper> time;
+        private final ObjectProvider<IdGenerator> uid;
+        private final ObjectProviderAccessor accessor;
+
+        @Override
+        public Timestamper time() {
+            return this.accessor.bean(this.time, Timestamper.class);
+        }
+
+        @Override
+        public IdGenerator uid() {
+            return this.accessor.bean(this.uid, IdGenerator.class);
+        }
     }
 
 }

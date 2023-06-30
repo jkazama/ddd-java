@@ -8,12 +8,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import sample.ActionStatusType;
 import sample.context.Timestamper;
 import sample.context.actor.Actor;
-import sample.context.orm.JpaRepository;
+import sample.context.orm.OrmRepository;
 import sample.context.orm.TxTemplate;
-import sample.context.uid.IdGenerator;
 import sample.model.account.Account;
 import sample.model.account.Account.AccountStatusType;
 import sample.model.account.FiAccount;
@@ -27,31 +27,18 @@ import sample.model.master.SelfFiAccount;
 import sample.util.TimePoint;
 
 /**
- * データ生成用のサポートコンポーネント。
+ * A support component for the data generation.
  * <p>
- * テストや開発時の簡易マスタデータ生成を目的としているため本番での利用は想定していません。
- * low: 実際の開発では開発/テスト環境のみ有効となるよう細かなプロファイル指定が必要となります。
- * 
- * @author jkazama
+ * It is aimed for master data generation at the time of a test and the
+ * development,
+ * Please do not use it in the production.
  */
 @Component
+@RequiredArgsConstructor(staticName = "of")
 public class DataFixtures {
-
-    private final JpaRepository rep;
+    private final OrmRepository rep;
     private final PlatformTransactionManager txm;
     private final Timestamper time;
-    private final IdGenerator uid;
-
-    public DataFixtures(
-            JpaRepository rep,
-            PlatformTransactionManager txm,
-            Timestamper time,
-            IdGenerator uid) {
-        this.rep = rep;
-        this.txm = txm;
-        this.time = time;
-        this.uid = uid;
-    }
 
     @PostConstruct
     public void initialize() {
@@ -63,60 +50,72 @@ public class DataFixtures {
 
     public void initializeInTx() {
         String ccy = "JPY";
-        LocalDate baseDay = LocalDate.of(2014, 11, 18);
+        LocalDate baseDay = LocalDate.now();
+
         time.daySet(baseDay);
 
-        // 自社金融機関
-        selfFiAcc(Remarks.CashOut, ccy).save(rep);
+        this.rep.save(selfFiAcc(Remarks.CASH_OUT, ccy));
 
-        // 口座: sample
+        // Account: sample
         String idSample = "sample";
-        acc(idSample).save(rep);
-        fiAcc(idSample, Remarks.CashOut, ccy).save(rep);
-        cb(idSample, baseDay, ccy, "1000000").save(rep);
+        this.rep.save(acc(idSample));
+        this.rep.save(fiAcc(idSample, Remarks.CASH_OUT, ccy));
+        this.rep.save(cb(idSample, baseDay, ccy, "1000000"));
     }
 
     // account
 
-    /** 口座の簡易生成 */
-    public Account acc(String id) {
-        return new Account(id, id, "hoge@example.com", AccountStatusType.NORMAL);
+    public static Account acc(String id) {
+        var m = new Account();
+        m.setId(id);
+        m.setName(id);
+        m.setMail("hoge@example.com");
+        m.setStatusType(AccountStatusType.NORMAL);
+        return m;
     }
 
-    /** 口座に紐付く金融機関口座の簡易生成 */
-    public FiAccount fiAcc(String accountId, String category, String currency) {
-        return new FiAccount(null, accountId, category, currency, category + "-" + currency, "FI" + accountId);
+    public static FiAccount fiAcc(String accountId, String category, String currency) {
+        var m = new FiAccount();
+        m.setAccountId(accountId);
+        m.setCategory(category);
+        m.setCurrency(currency);
+        m.setFiCode(category + "-" + currency);
+        m.setFiAccountId("FI" + accountId);
+        return m;
     }
 
     // asset
 
-    /** 口座残高の簡易生成 */
-    public CashBalance cb(String accountId, LocalDate baseDay, String currency, String amount) {
-        return new CashBalance(null, accountId, baseDay, currency, new BigDecimal(amount), LocalDateTime.now());
+    public static CashBalance cb(String accountId, LocalDate baseDay, String currency, String amount) {
+        var m = new CashBalance();
+        m.setAccountId(accountId);
+        m.setBaseDay(baseDay);
+        m.setCurrency(currency);
+        m.setAmount(new BigDecimal(amount));
+        m.setUpdateDate(LocalDateTime.now());
+        return m;
     }
 
-    /** キャッシュフローの簡易生成 */
-    public Cashflow cf(String accountId, String amount, LocalDate eventDay, LocalDate valueDay) {
+    public static Cashflow cf(String accountId, String amount, LocalDate eventDay, LocalDate valueDay) {
         return cfReg(accountId, amount, valueDay).create(TimePoint.of(eventDay), Actor.Anonymous.id());
     }
 
-    /** キャッシュフロー登録パラメタの簡易生成 */
-    public RegCashflow cfReg(String accountId, String amount, LocalDate valueDay) {
+    public static RegCashflow cfReg(String accountId, String amount, LocalDate valueDay) {
         return RegCashflow.builder()
                 .accountId(accountId)
                 .currency("JPY")
                 .amount(new BigDecimal(amount))
-                .cashflowType(CashflowType.CashIn)
+                .cashflowType(CashflowType.CASH_IN)
                 .remark("cashIn")
                 .valueDay(valueDay)
                 .build();
     }
 
-    /** 振込入出金依頼の簡易生成。 [発生日(T+1)/受渡日(T+3)] */
-    public CashInOut cio(String accountId, String absAmount, boolean withdrawal) {
-        TimePoint now = time.tp();
+    // eventDay(T+1) / valueDay(T+3)
+    public static CashInOut cio(
+            String id, String accountId, String absAmount, boolean withdrawal, TimePoint now) {
         var cb = new CashInOut();
-        cb.setId(uid.generate(CashInOut.class.getSimpleName()));
+        cb.setId(id);
         cb.setAccountId(accountId);
         cb.setCurrency("JPY");
         cb.setAbsAmount(new BigDecimal(absAmount));
@@ -138,9 +137,13 @@ public class DataFixtures {
 
     // master
 
-    /** 自社金融機関口座の簡易生成 */
-    public SelfFiAccount selfFiAcc(String category, String currency) {
-        return new SelfFiAccount(null, category, currency, category + "-" + currency, "xxxxxx");
+    public static SelfFiAccount selfFiAcc(String category, String currency) {
+        var m = new SelfFiAccount();
+        m.setCategory(category);
+        m.setCurrency(currency);
+        m.setFiCode(category + "-" + currency);
+        m.setFiAccountId("xxxxxx");
+        return m;
     }
 
 }

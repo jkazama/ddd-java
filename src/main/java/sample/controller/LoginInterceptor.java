@@ -10,12 +10,8 @@ import sample.context.actor.ActorRoleType;
 import sample.context.actor.ActorSession;
 
 /**
- * スレッドローカルに利用者を紐付けるAOPInterceptor。
- * low: 今回は認証機能を用意していないのでダミーです。
- * low: Spring Secuirty 利用時は Filter を差し込んで ActorSession の紐付をおこなってください。
- * WebFlux 等で ThreadLocal が利用出来ない時は ReactiveSecurityContextHolder を用いて設定してください。
- * 
- * @author jkazama
+ * AOPInterceptor relates a login user with thread local.
+ * low: It is a dummy because no authentication function is provided.
  */
 @Aspect
 @Component

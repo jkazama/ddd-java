@@ -8,8 +8,9 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -25,9 +26,7 @@ import sample.model.constraints.Currency;
 import sample.usecase.AssetService;
 
 /**
- * 資産に関わる顧客のUI要求を処理します。
- *
- * @author jkazama
+ * API controller of the asset domain.
  */
 @RestController
 @RequestMapping("/asset")
@@ -35,7 +34,6 @@ import sample.usecase.AssetService;
 public class AssetController {
     private final AssetService service;
 
-    /** 未処理の振込依頼情報を検索します。 */
     @GetMapping("/cio/unprocessedOut")
     public List<UserCashOut> findUnprocessedCashOut() {
         return service.findUnprocessedCashOut().stream()
@@ -43,12 +41,9 @@ public class AssetController {
                 .toList();
     }
 
-    /**
-     * 振込出金依頼をします。
-     * low: 実際は状態を変えうる行為なのでPOSTですが、デモ用にGETでも処理できるようにしています。
-     */
-    @RequestMapping(value = "/cio/withdraw", method = { RequestMethod.POST, RequestMethod.GET })
-    public ResponseEntity<Map<String, String>> withdraw(@Valid UserRegCashOut p) {
+    @PostMapping("/cio/withdraw")
+    public ResponseEntity<Map<String, String>> withdraw(
+            @RequestBody @Valid UserRegCashOut p) {
         var accountId = ActorSession.actor().id();
         return ResponseEntity.ok(Map.of("id", service.withdraw(p.toParam(accountId))));
     }
@@ -65,7 +60,6 @@ public class AssetController {
         }
     }
 
-    /** 振込出金依頼情報の表示用Dto */
     @Builder
     public static record UserCashOut(
             String id,

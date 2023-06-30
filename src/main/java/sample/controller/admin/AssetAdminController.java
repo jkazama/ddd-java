@@ -10,12 +10,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import sample.model.asset.CashInOut;
 import sample.model.asset.CashInOut.FindCashInOut;
-import sample.usecase.AssetAdminService;
+import sample.usecase.admin.AssetAdminService;
 
 /**
- * 資産に関わる社内のUI要求を処理します。
- *
- * @author jkazama
+ * API controller of the asset domain in the organization.
  */
 @RestController
 @RequestMapping("/admin/asset")
@@ -23,7 +21,6 @@ import sample.usecase.AssetAdminService;
 public class AssetAdminController {
     private final AssetAdminService service;
 
-    /** 未処理の振込依頼情報を検索します。 */
     @GetMapping("/cio")
     public List<CashInOut> findCashInOut(@Valid FindCashInOut p) {
         return service.findCashInOut(p);

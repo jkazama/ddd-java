@@ -1,29 +1,22 @@
 package sample.usecase.event;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
 import sample.context.Dto;
+import sample.usecase.event.type.AppMailType;
 
 /**
- * メール配信イベントを表現します。
- * 
- * @author jkazama
+ * Represents a mail delivery event.
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AppMailEvent<T> implements Dto {
-    private AppMailType mailType;
-    private T value;
+@Builder
+public record AppMailEvent<T>(
+        AppMailType mailType,
+        T value) implements Dto {
 
     public static <T> AppMailEvent<T> of(AppMailType mailType, T value) {
-        return new AppMailEvent<T>(mailType, value);
+        return AppMailEvent.<T>builder()
+                .mailType(mailType)
+                .value(value)
+                .build();
     }
 
-    /** メール配信種別を表現します。 */
-    public static enum AppMailType {
-        /** 振込出金依頼の登録受付完了 */
-        FINISH_REQUEST_WITHDRAW;
-    }
 }

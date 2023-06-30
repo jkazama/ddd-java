@@ -2,14 +2,15 @@ package sample.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.math.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.junit.jupiter.api.Test;
 
 public class CalculatorTest {
 
     @Test
-    public void 単純な四則演算検証() {
+    public void calculation() {
 
         // (10 + 2 - 4) * 4 / 8 = 4
         assertEquals(
@@ -19,11 +20,12 @@ public class CalculatorTest {
         // (12.4 + 0.033 - 2.33) * 0.3 / 3.3 = 0.91 (RoundingMode.DOWN)
         assertEquals(
                 new BigDecimal("0.91"),
-                Calculator.init(12.4).scale(2).add(0.033).subtract(2.33).multiply(0.3).divideBy(3.3).decimal());
+                Calculator.init(12.4).scale(2).add(0.033).subtract(2.33).multiply(0.3).divideBy(3.3)
+                        .decimal());
     }
 
     @Test
-    public void 累積端数処理の検証() {
+    public void roundingAlways() {
 
         // 3.333 -> 3.334 -> 3.335 (= 3.34)
         assertEquals(

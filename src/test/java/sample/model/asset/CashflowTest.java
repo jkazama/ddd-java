@@ -6,33 +6,44 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import sample.ActionStatusType;
-import sample.EntityTestSupport;
-import sample.ValidationException;
+import sample.context.ValidationException;
+import sample.model.DataFixtures;
 import sample.model.DomainErrorKeys;
+import sample.model.DomainTester;
+import sample.model.DomainTester.DomainTesterBuilder;
 
-// low: 簡易な正常系検証が中心。依存するCashBalanceの単体検証パスを前提。
-public class CashflowTest extends EntityTestSupport {
+public class CashflowTest {
 
-    @Override
-    protected void setupPreset() {
-        targetEntities(Cashflow.class);
+    private DomainTester tester;
+
+    @BeforeEach
+    public void before() {
+        tester = DomainTesterBuilder.from(Cashflow.class).build();
+    }
+
+    @AfterEach
+    public void after() {
+        tester.close();
     }
 
     @Test
     public void register() {
-        tx(() -> {
-            // 過去日付の受渡でキャッシュフロー発生 [例外]
+        tester.tx(rep -> {
+            // It is cashflow outbreak by the delivery of the past date.
+            // [ValidationException]
             try {
-                Cashflow.register(rep, fixtures.cfReg("test1", "1000", LocalDate.of(2014, 11, 17)));
+                Cashflow.register(rep, DataFixtures.cfReg("test1", "1000", LocalDate.of(2014, 11, 17)));
                 fail();
             } catch (ValidationException e) {
                 assertEquals("error.Cashflow.beforeEqualsDay", e.getMessage());
             }
-            // 翌日受渡でキャッシュフロー発生
-            var cf = Cashflow.register(rep, fixtures.cfReg("test1", "1000", LocalDate.of(2014, 11, 19)));
+            // Cashflow occurs by delivery the next day.
+            var cf = Cashflow.register(rep, DataFixtures.cfReg("test1", "1000", LocalDate.of(2014, 11, 19)));
             assertEquals(new BigDecimal("1000"), cf.getAmount());
             assertEquals(ActionStatusType.UNPROCESSED, cf.getStatusType());
             assertEquals(LocalDate.of(2014, 11, 18), cf.getEventDay());
@@ -42,12 +53,13 @@ public class CashflowTest extends EntityTestSupport {
 
     @Test
     public void realize() {
-        tx(() -> {
+        tester.tx(rep -> {
             CashBalance.getOrNew(rep, "test1", "JPY");
 
-            // 未到来の受渡日 [例外]
-            var cfFuture = fixtures.cf("test1", "1000", LocalDate.of(2014, 11, 18),
-                    LocalDate.of(2014, 11, 19)).save(rep);
+            // Value day of non-arrival. [ValidationException]
+            var cfFuture = rep.save(DataFixtures
+                    .cf("test1", "1000", LocalDate.of(2014, 11, 18),
+                            LocalDate.of(2014, 11, 19)));
             try {
                 cfFuture.realize(rep);
                 fail();
@@ -55,13 +67,14 @@ public class CashflowTest extends EntityTestSupport {
                 assertEquals(AssetErrorKeys.CF_REALIZE_DAY, e.getMessage());
             }
 
-            // キャッシュフローの残高反映検証。 0 + 1000 = 1000
-            var cfNormal = fixtures.cf("test1", "1000", LocalDate.of(2014, 11, 17),
-                    LocalDate.of(2014, 11, 18)).save(rep);
+            // Balance reflection inspection of the cashflow. 0 + 1000 = 1000
+            var cfNormal = rep.save(DataFixtures
+                    .cf("test1", "1000", LocalDate.of(2014, 11, 17),
+                            LocalDate.of(2014, 11, 18)));
             assertEquals(ActionStatusType.PROCESSED, cfNormal.realize(rep).getStatusType());
             assertEquals(new BigDecimal("1000"), CashBalance.getOrNew(rep, "test1", "JPY").getAmount());
 
-            // 処理済キャッシュフローの再実現 [例外]
+            // Re-realization of the treated cashflow. [ValidationException]
             try {
                 cfNormal.realize(rep);
                 fail();
@@ -69,8 +82,9 @@ public class CashflowTest extends EntityTestSupport {
                 assertEquals(DomainErrorKeys.STATUS_PROCESSING, e.getMessage());
             }
 
-            // 過日キャッシュフローの残高反映検証。 1000 + 2000 = 3000
-            var cfPast = fixtures.cf("test1", "2000", LocalDate.of(2014, 11, 16), LocalDate.of(2014, 11, 17)).save(rep);
+            // Balance reflection inspection of the other day cashflow. 1000 + 2000 = 3000
+            var cfPast = rep.save(
+                    DataFixtures.cf("test1", "2000", LocalDate.of(2014, 11, 16), LocalDate.of(2014, 11, 17)));
             assertEquals(ActionStatusType.PROCESSED, cfPast.realize(rep).getStatusType());
             assertEquals(new BigDecimal("3000"), CashBalance.getOrNew(rep, "test1", "JPY").getAmount());
         });
@@ -78,10 +92,10 @@ public class CashflowTest extends EntityTestSupport {
 
     @Test
     public void registerWithRealize() {
-        tx(() -> {
+        tester.tx(rep -> {
             CashBalance.getOrNew(rep, "test1", "JPY");
-            // 発生即実現
-            Cashflow.register(rep, fixtures.cfReg("test1", "1000", LocalDate.of(2014, 11, 18)));
+            // Cashflow is realized immediately
+            Cashflow.register(rep, DataFixtures.cfReg("test1", "1000", LocalDate.of(2014, 11, 18)));
             assertEquals(new BigDecimal("1000"), CashBalance.getOrNew(rep, "test1", "JPY").getAmount());
         });
     }

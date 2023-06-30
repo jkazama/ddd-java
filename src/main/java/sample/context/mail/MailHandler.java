@@ -9,27 +9,25 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * メール送受信を行います。
- * low: サンプルではメール送信のI/Fのみ作ってます。実際はPOP3/IMAP等のメール受信もサポートしたり、
- * リターンメールのフォローアップをしたりします。
- * 
- * @author jkazama
+ * Send and receive mail.
+ * low: In the sample, only I / F for sending mail is created. In practice it
+ * also supports receiving emails such as POP3 / IMAP.
  */
 @Component
 @Slf4j
 public class MailHandler {
-    /** メール利用可否 */
     @Value("${sample.mail.enabled:true}")
     private Boolean enable;
 
-    /** メールを送信します。 */
     public MailHandler send(final SendMail mail) {
         if (!enable) {
-            log.info("メールをダミー送信しました。 [" + mail.subject + "]");
+            log.info("Sent a dummy email. [" + mail.subject + "]");
             return this;
         }
-        // low: 外部リソースとの連携でオーバーヘッドが結構発生するので、実際は非同期処理で行う。
-        // low: bodyへbodyArgsを置換マッピングした内容をJavaMailなどで送信。
+        // low: There should be a lot of overhead in cooperation with external
+        // resources, so it should be done asynchronously.
+        // low: Send the contents of the substitution mapping of bodyArgs to body by
+        // JavaMail etc.
         return this;
     }
 
