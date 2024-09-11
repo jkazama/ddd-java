@@ -23,3 +23,15 @@ management:
 
 sample:
   mail.enabled: ${MAIL_ENABLED:true}
+
+---
+spring:
+  config.activate.on-profile: "dev"
+
+spring.jpa:
+    show-sql: true
+    hibernate.ddl-auto: create-drop
+
+management.endpoints.web.exposure.include: "*"
+
+sample.mail.enabled: false

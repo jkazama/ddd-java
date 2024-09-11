@@ -100,7 +100,7 @@ It is necessary to do the following step.
 Do the server start in the next step.
 
 1. You move to the cloned *ddd-java* directory.
-1. Run command `gradlew bootRun`.
+1. Run command `./gradlew bootRun --args='--spring.profiles.active=dev'`.
 1. If console show "Started Application", start is completed in port 8080
 1. Run command `curl http://localhost:8080/actuator/health`
 
