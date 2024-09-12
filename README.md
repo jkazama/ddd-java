@@ -30,7 +30,7 @@ Spring Boot is available for various usage, but uses it in the following policy 
 
 #### Use policy of Java coding
 
-- Java17 over
+- Java 21 over
 - Use Lombok positively and remove diffuseness.
 - The name as possible briefly.
 - Do not abuse the interface.
@@ -95,7 +95,7 @@ Run application from a console of Windows / Mac in Gradle.
 
 It is necessary to do the following step.
 
-- Check Instablled JDK17+.
+- Check Instablled JDK 21+.
 
 Do the server start in the next step.
 
