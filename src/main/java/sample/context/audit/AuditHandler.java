@@ -12,16 +12,16 @@ import sample.context.actor.Actor;
 import sample.context.actor.ActorSession;
 
 /**
- * It deals with user inspection or EDP audit (an appointed hour batch or kind
- * of day batch).
+ * Handles user auditing and EDP audit (scheduled batch processing or
+ * daily batch processing).
  * <p>
- * When you expect an implicit application, please examine the cooperation with
- * AOP.
+ * When you expect implicit application behavior, please consider
+ * integration with AOP.
  * <p>
- * The target log is begun to write as well as Logger to the inspection table of
+ * The target log is written to both Logger and the audit table of
  * the system schema.
- * (You can detect a replyless state by making the other transaction at a start
- * and completion.)
+ * (You can detect unresponsive states by using separate transactions
+ * for start and completion.)
  */
 @Component
 public class AuditHandler {

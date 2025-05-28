@@ -26,6 +26,7 @@
 				"vscjava.vscode-java-pack",
 				"vscjava.vscode-gradle",
 				"vscjava.vscode-spring-boot-dashboard",
+				"redhat.java@1.41.1",
 				"pivotal.vscode-spring-boot",
 				"pivotal.vscode-boot-dev-pack"
 			]

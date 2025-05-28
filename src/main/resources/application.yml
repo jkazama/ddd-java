@@ -6,13 +6,14 @@ spring:
     indent-output: true
   datasource:
     driver-class-name: ${JDBC_DRIVER:org.h2.Driver}
-    url: ${JDBC_URL:jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    url: ${JDBC_URL:jdbc:h2:mem:maindb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
     username: ${JDBC_USERNAME:}
     password: ${JDBC_PASSWORD:}
-  jpa:
-    open-in-view: false
-    show-sql: ${SHOW_SQL:false}
-    hibernate.ddl-auto: ${DDL_AUTO:none}
+  sql:
+    init:
+      mode: never
+      schema-locations: classpath:schema/schema.sql
+      data-locations: classpath:schema/data.sql
 
 logging.config: ${LOGGING_CONFIG_XML:classpath:logback-spring.xml}
 
@@ -30,8 +31,7 @@ sample:
 spring:
   config.activate.on-profile: "dev"
 
-spring.jpa:
-    hibernate.ddl-auto: create-drop
+spring.sql.init.mode: always
 
 management.endpoints.web.exposure.include: "*"
 

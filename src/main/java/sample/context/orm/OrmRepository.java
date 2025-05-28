@@ -1,154 +1,168 @@
 package sample.context.orm;
 
-import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.sql.DataSource;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import lombok.Setter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jdbc.core.JdbcAggregateTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
 import sample.context.DomainEntity;
 import sample.context.DomainHelper;
 import sample.context.Repository;
+import sample.context.ValidationException;
+import sample.model.DomainErrorKeys;
 
 /**
- * Repository base implementation of JPA.
+ * Repository base implementation of JDBC.
  * <p>
- * This component provides simple JPA implementation in form not to use a base
+ * This component provides simple JDBC implementation in form not to use a base
  * of Spring Data
  * to realize 1-n relations of Repository and Entity.
- * <p>
- * Repository made in succession to JpaRepository becomes the data source unit.
  */
-@Setter
-public abstract class OrmRepository implements Repository {
+@Component
+@RequiredArgsConstructor(staticName = "of")
+public class OrmRepository implements Repository {
+    private final DomainHelper dh;
+    private final DataSource dataSource;
+    private final JdbcAggregateTemplate jdbcTemplate;
 
-    @Autowired
-    private DomainHelper dh;
-
-    /**
-     * Return EntityManager to manage.
-     * <p>
-     * Return EntityManager of the data source which you want to manage in
-     * succession.
-     */
-    public abstract EntityManager em();
-
-    /** {@inheritDoc} */
     @Override
     public DomainHelper dh() {
         return dh;
     }
 
-    /**
-     * Return the simple accessor of the JPA operation.
-     * <p>
-     * JpaTemplate is created each call.
-     */
     public OrmTemplate tmpl() {
-        return OrmTemplate.of(em());
+        return OrmTemplate.of(this.jdbcTemplate, this.tmplJdbc());
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public <T extends DomainEntity> T get(Class<T> clazz, Serializable id) {
-        return em().find(clazz, id);
+    public NamedParameterJdbcTemplate tmplJdbc() {
+        return new NamedParameterJdbcTemplate(this.dataSource);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public <T extends DomainEntity> T load(Class<T> clazz, Serializable id) {
-        return em().getReference(clazz, id);
+    public <T extends DomainEntity> T get(Class<T> clazz, Object id) {
+        return jdbcTemplate.findById(id, clazz);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public <T extends DomainEntity> boolean exists(Class<T> clazz, Serializable id) {
-        return get(clazz, id) != null;
+    public <T extends DomainEntity> T load(Class<T> clazz, Object id) {
+        T entity = get(clazz, id);
+        if (entity == null) {
+            throw ValidationException.of(DomainErrorKeys.ENTITY_NOT_FOUND, id.toString());
+        }
+        return entity;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @SuppressWarnings("unchecked")
-    public <T extends DomainEntity> T getOne(Class<T> clazz) {
-        return (T) em().createQuery("FROM " + clazz.getSimpleName()).getSingleResult();
+    public <T extends DomainEntity> boolean exists(Class<T> clazz, Object id) {
+        return jdbcTemplate.existsById(id, clazz);
     }
 
-    /** {@inheritDoc} */
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends DomainEntity> List<T> findAll(Class<T> clazz) {
-        return em().createQuery("FROM " + clazz.getSimpleName()).getResultList();
+        Iterable<T> entities = jdbcTemplate.findAll(clazz);
+        return StreamSupport.stream(entities.spliterator(), false)
+                .collect(Collectors.toList());
     }
 
-    /** {@inheritDoc} */
     @Override
     public <T extends DomainEntity> T save(T entity) {
-        em().persist(entity);
-        return entity;
+        return jdbcTemplate.insert(entity);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <T extends DomainEntity> T saveOrUpdate(T entity) {
-        return em().merge(entity);
+        if (this.exists(entity.getClass(), entity.id())) {
+            return this.update(entity);
+        } else {
+            return this.save(entity);
+        }
     }
 
-    /** {@inheritDoc} */
     @Override
     public <T extends DomainEntity> T update(T entity) {
-        return em().merge(entity);
+        return jdbcTemplate.save(entity);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <T extends DomainEntity> T delete(T entity) {
-        em().remove(entity);
+        jdbcTemplate.delete(entity);
         return entity;
     }
 
+    // Additional convenience methods for Spring Data JDBC style operations
+
     /**
-     * Perform DB and synchronization of all the entities
-     * which are not perpetuated in a session cache (SQL execution).
-     * <p>
-     * Please call it at the point that wants to make an SQL execution timing clear.
-     * You call #flushAndClear with the case that session cash is tight by batch
-     * processing in memory regularly,
-     * and please prevent enlargement of the session cash.
+     * Save multiple entities.
      */
-    public OrmRepository flush() {
-        em().flush();
-        return this;
+    public <T extends DomainEntity> Iterable<T> saveAll(Iterable<T> entities) {
+        return jdbcTemplate.saveAll(entities);
     }
 
     /**
-     * Initialize session cash after having synchronized the entities
-     * which is not perpetuated in a session cache with DB.
-     * <p>
-     * Session cash maintained implicitly is tight by the batch processing that mass
-     * update produces
-     * in memory and often causes a big problem and is seen.
-     * You call this processing regularly, and please maintain size of the session
-     * cash in fixed-quantity.
+     * Find entity by ID with Optional.
      */
-    public OrmRepository flushAndClear() {
-        em().flush();
-        em().clear();
-        return this;
+    public <T extends DomainEntity> Optional<T> findById(Class<T> clazz, Object id) {
+        return Optional.ofNullable(jdbcTemplate.findById(id, clazz));
     }
 
-    /** Repository of the standard schema. */
-    @org.springframework.stereotype.Repository
-    public static class DefaultRepository extends OrmRepository {
-        @PersistenceContext
-        @Setter
-        private EntityManager em;
+    /**
+     * Find all entities with sorting.
+     */
+    public <T extends DomainEntity> Iterable<T> findAll(Class<T> clazz, Sort sort) {
+        return jdbcTemplate.findAll(clazz, sort);
+    }
 
-        @Override
-        public EntityManager em() {
-            return em;
-        }
+    /**
+     * Find all entities with pagination.
+     */
+    public <T extends DomainEntity> Page<T> findAll(Class<T> clazz, Pageable pageable) {
+        Iterable<T> entities = jdbcTemplate.findAll(clazz, pageable.getSort());
+        List<T> content = StreamSupport.stream(entities.spliterator(), false)
+                .skip(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .collect(Collectors.toList());
+
+        long total = jdbcTemplate.count(clazz);
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    /**
+     * Count all entities.
+     */
+    public <T extends DomainEntity> long count(Class<T> clazz) {
+        return jdbcTemplate.count(clazz);
+    }
+
+    /**
+     * Delete entity by ID.
+     */
+    public <T extends DomainEntity> void deleteById(Class<T> clazz, Object id) {
+        jdbcTemplate.deleteById(id, clazz);
+    }
+
+    /**
+     * Delete multiple entities.
+     */
+    public <T extends DomainEntity> void deleteAll(Iterable<? extends T> entities) {
+        jdbcTemplate.deleteAll(entities);
+    }
+
+    /**
+     * Delete all entities of specified type.
+     */
+    public <T extends DomainEntity> void deleteAll(Class<T> clazz) {
+        jdbcTemplate.deleteAll(clazz);
     }
 
 }

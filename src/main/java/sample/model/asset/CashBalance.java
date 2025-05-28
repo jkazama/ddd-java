@@ -4,12 +4,16 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.relational.core.mapping.Table;
+
+import lombok.Builder;
 import sample.context.DomainEntity;
 import sample.context.orm.OrmRepository;
 import sample.model.constraints.AccountId;
@@ -23,23 +27,25 @@ import sample.util.TimePoint;
 /**
  * The account balance.
  */
-@Entity
-@Data
-public class CashBalance implements DomainEntity {
+@Table("CASH_BALANCE")
+@Builder
+public record CashBalance(
+        @Id String id,
+        @AccountId String accountId,
+        @ISODate LocalDate baseDay,
+        @Currency String currency,
+        @Amount BigDecimal amount,
+        @ISODateTime LocalDateTime updateDate) implements DomainEntity {
 
-    @Id
-    @GeneratedValue
-    private Long id;
-    @AccountId
-    private String accountId;
-    @ISODate
-    private LocalDate baseDay;
-    @Currency
-    private String currency;
-    @Amount
-    private BigDecimal amount;
-    @ISODateTime
-    private LocalDateTime updateDate;
+    public CashBalanceBuilder copyBuilder() {
+        return CashBalance.builder()
+                .id(this.id)
+                .accountId(this.accountId)
+                .baseDay(this.baseDay)
+                .currency(this.currency)
+                .amount(this.amount)
+                .updateDate(this.updateDate);
+    }
 
     /**
      * low: Use Currency here, but the real number of the currency figures and
@@ -49,8 +55,11 @@ public class CashBalance implements DomainEntity {
     public CashBalance add(final OrmRepository rep, BigDecimal addAmount) {
         int scale = java.util.Currency.getInstance(currency).getDefaultFractionDigits();
         RoundingMode mode = RoundingMode.DOWN;
-        setAmount(Calculator.init(amount).scale(scale, mode).add(addAmount).decimal());
-        return rep.update(this);
+        BigDecimal newAmount = Calculator.init(amount).scale(scale, mode).add(addAmount).decimal();
+        return rep.update(this.copyBuilder()
+                .amount(newAmount)
+                .updateDate(rep.dh().time().date())
+                .build());
     }
 
     /**
@@ -61,44 +70,48 @@ public class CashBalance implements DomainEntity {
      */
     public static CashBalance getOrNew(final OrmRepository rep, String accountId, String currency) {
         LocalDate baseDay = rep.dh().time().day();
-        var jpql = """
-                FROM CashBalance cb
-                WHERE cb.accountId=?1 AND cb.currency=?2 AND cb.baseDay=?3
-                ORDER BY cb.baseDay DESC
-                """;
-        List<CashBalance> list = rep.tmpl().find(jpql, accountId, currency, baseDay);
+        List<CashBalance> list = rep.tmpl().find(CashBalance.class, criteria -> criteria
+                .and("accountId").is(accountId)
+                .and("currency").is(currency)
+                .and("baseDay").is(baseDay));
+
         if (list.isEmpty()) {
             return create(rep, accountId, currency);
         } else {
-            return list.get(0);
+            return list.stream()
+                    .max(Comparator.comparing(CashBalance::baseDay))
+                    .orElse(list.get(0));
         }
     }
 
     private static CashBalance create(final OrmRepository rep, String accountId, String currency) {
+        var id = rep.dh().uid().generate(CashBalance.class.getSimpleName());
         TimePoint now = rep.dh().time().tp();
-        var jpql = """
-                FROM CashBalance cb
-                WHERE cb.accountId=?1 AND cb.currency=?2
-                ORDER BY cb.baseDay DESC
-                """;
-        List<CashBalance> list = rep.tmpl().find(jpql, accountId, currency);
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "baseDay"));
+        List<CashBalance> list = rep.tmpl().find(CashBalance.class, criteria -> criteria
+                .and("accountId").is(accountId)
+                .and("currency").is(currency), pageable)
+                .getContent();
+
         if (list.isEmpty()) {
-            var m = new CashBalance();
-            m.setAccountId(accountId);
-            m.setBaseDay(now.getDay());
-            m.setCurrency(currency);
-            m.setAmount(BigDecimal.ZERO);
-            m.setUpdateDate(now.getDate());
-            return rep.save(m);
+            return rep.save(CashBalance.builder()
+                    .id(id)
+                    .accountId(accountId)
+                    .baseDay(now.day())
+                    .currency(currency)
+                    .amount(BigDecimal.ZERO)
+                    .updateDate(now.date())
+                    .build());
         } else { // roll over
             var prev = list.get(0);
-            var m = new CashBalance();
-            m.setAccountId(accountId);
-            m.setBaseDay(now.getDay());
-            m.setCurrency(currency);
-            m.setAmount(prev.getAmount());
-            m.setUpdateDate(now.getDate());
-            return rep.save(m);
+            return rep.save(CashBalance.builder()
+                    .id(id)
+                    .accountId(accountId)
+                    .baseDay(now.day())
+                    .currency(currency)
+                    .amount(prev.amount)
+                    .updateDate(now.date())
+                    .build());
         }
     }
 

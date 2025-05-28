@@ -1,13 +1,13 @@
 /**
- * A UI layer components.
+ * UI layer components.
  * <p>
- * Realize use case processing using a component of the application layer.
- * It does not assume it that a component of the UI layer calls the direct
- * domain layer
- * and to interdepend between Controller.
+ * Realizes use case processing using components of the application layer.
+ * It is not assumed that UI layer components directly call the domain layer
+ * or have interdependencies between Controllers.
  * <p>
- * Permit it about Entity by interpreting it as DTO, but it is necessary to warn
- * you to
- * give back information more than required, and not to lay a security risk.
+ * Entities are permitted by interpreting them as DTOs, but it is necessary to
+ * be
+ * careful not to return more information than required and not to create
+ * security risks.
  */
 package sample.controller;

@@ -1,10 +1,10 @@
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.4.0'
-  id 'io.spring.dependency-management' version '1.1.6'
+  id 'org.springframework.boot' version '3.5.0'
+  id 'io.spring.dependency-management' version '1.1.7'
 }
 
-version = "3.4.0"
+version = "3.5.0"
 
 javadoc {
   options.addBooleanOption('Xdoclint:none', true)
@@ -27,7 +27,7 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   compileOnly "org.projectlombok:lombok"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+  implementation "org.springframework.boot:spring-boot-starter-data-jdbc"
   implementation "org.springframework.boot:spring-boot-starter-validation"
   implementation "org.springframework.boot:spring-boot-starter-aop"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
@@ -38,5 +38,5 @@ dependencies {
 }
 
 wrapper {
-    gradleVersion = "8.11.1"
+    gradleVersion = "8.14.1"
 }

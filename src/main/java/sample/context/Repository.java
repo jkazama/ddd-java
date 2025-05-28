@@ -1,6 +1,5 @@
 package sample.context;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -17,13 +16,11 @@ public interface Repository {
      */
     DomainHelper dh();
 
-    <T extends DomainEntity> T get(final Class<T> clazz, final Serializable id);
+    <T extends DomainEntity> T get(final Class<T> clazz, final Object id);
 
-    <T extends DomainEntity> T load(final Class<T> clazz, final Serializable id);
+    <T extends DomainEntity> T load(final Class<T> clazz, final Object id);
 
-    <T extends DomainEntity> boolean exists(final Class<T> clazz, final Serializable id);
-
-    <T extends DomainEntity> T getOne(final Class<T> clazz);
+    <T extends DomainEntity> boolean exists(final Class<T> clazz, final Object id);
 
     <T extends DomainEntity> List<T> findAll(final Class<T> clazz);
 

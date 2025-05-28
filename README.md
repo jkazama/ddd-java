@@ -3,42 +3,42 @@ ddd-java
 
 ### Preface
 
-It is DDD sample implementation from [Spring Boot](http://projects.spring.io/spring-boot/).  
-It is not a framework, This is a simple example of the implementation based on Evans's DDD.
+This is a DDD sample implementation using [Spring Boot](http://projects.spring.io/spring-boot/).  
+It is not a framework, but a simple example of implementation based on Evans's DDD.
 
 
 #### Concept of Layering
 
-It is three levels of famous models, but considers the infrastructure layer as cross-sectional interpretation.
+This follows the famous three-layer model, but considers the infrastructure layer as a cross-cutting concern.
 
 | Layer          |                                                            |
 | -------------- | ----------------------------------------------------------- |
-| UI             | Receive use case request                                    |
-| Application    | Use case processing (including the outside resource access) |
-| Domain         | Pure domain logic (not depend on the outside resource) |
-| Infrastructure | DI container and ORM, various libraries |
+| UI             | Receives use case requests                                  |
+| Application    | Use case processing (including external resource access)   |
+| Domain         | Pure domain logic (does not depend on external resources)  |
+| Infrastructure | DI container, ORM, and various libraries                   |
 
-Usually perform public handling of UI layer using Thymeleaf, but this sample assume use of different types of clients and perform only API offer in RESTfulAPI.
+Usually, the UI layer handles public interactions using Thymeleaf, but this sample assumes the use of different types of clients and only provides APIs through RESTful endpoints.
 
-#### Use policy of Spring Boot
+#### Spring Boot Usage Policy
 
-Spring Boot is available for various usage, but uses it in the following policy with this sample.
+Spring Boot can be used in various ways, but this sample follows the following policies:
 
-- Use standard definitions as much as possible, such as DB settings.
-- The configuration file uses yml. do not use xml files for Bean definition.
-- The exception handling defines it in a endpoint (RestErrorAdvice).
+- Use standard configurations as much as possible, such as DB settings.
+- Configuration files use YAML. XML files are not used for Bean definitions.
+- Exception handling is defined at endpoints (RestErrorAdvice).
 
-#### Use policy of Java coding
+#### Java Coding Policy
 
-- Java 21 over
-- Use Lombok positively and remove diffuseness.
-- The name as possible briefly.
-- Do not abuse the interface.
-- DTO becoming a part of the domain defines it in an internal class.
+- Java 21 or higher
+- Use Lombok actively to reduce boilerplate code.
+- Keep names as brief as possible.
+- Do not overuse interfaces.
+- DTOs that are part of the domain are defined as inner classes.
 
-#### Resource
+#### Resource Structure
 
-Refer to the following for the package / resource constitution.
+Refer to the following for the package and resource structure:
 
 ```
 main
@@ -58,81 +58,81 @@ main
 
 ## Use Case
 
-Consider the following as a sample use case.
+Consider the following as a sample use case:
 
-- A customer with an account balance requests withdrawal. (Event T, Delivery T + 3)
-- The system closes the withdrawal request. (Allows cancellation of request until closing)
-- The system sets the business day to the forward day.
-- The system reflects the cash flow on delivery date to the account balance.
+- A customer with an account balance requests a withdrawal. (Event T, Delivery T + 3)
+- The system closes the withdrawal request. (Allows cancellation of the request until closing)
+- The system advances the business day to the next day.
+- The system reflects the cash flow on the delivery date to the account balance.
 
 ### Getting Started
 
-This sample uses [Gradle](https://gradle.org/), you can check the operation without trouble with IDE and a console.
+This sample uses [Gradle](https://gradle.org/). You can check the operation easily with an IDE or console.
 
 #### Server Start (VSCode DevContainer)
 
-It is necessary to do the following step.
+The following steps are required:
 
-- Check Instablled Docker.
-- Check Instablled VSCode with DevContainer Extension.
+- Ensure Docker is installed.
+- Ensure VSCode with DevContainer Extension is installed.
 
-Do the preparations for this sample in the next step.
+Prepare this sample with the following steps:
 
-1. You move to the cloned *ddd-java* directory.
-1. Run command `code .`.
-1. Choose *Open Container*
+1. Navigate to the cloned *ddd-java* directory.
+1. Run the command `code .`.
+1. Choose *Open Container*.
 
-Do the server start in the next step.
+Start the server with the following steps:
 
 1. Open VSCode "Run And Debug".
 1. Choose `Run ddd-java`.
-1. If console show "Started Application", start is completed in port 8080.
-1. Run command `curl http://localhost:8080/actuator/health`
+1. If the console shows "Started Application", the server has started on port 8080.
+1. Run the command `curl http://localhost:8080/actuator/health`.
 
 #### Server Start (Console)
 
-Run application from a console of Windows / Mac in Gradle.
+Run the application from a Windows/Mac console using Gradle.
 
-It is necessary to do the following step.
+The following steps are required:
 
-- Check Instablled JDK 21+.
+- Ensure JDK 21+ is installed.
 
-Do the server start in the next step.
+Start the server with the following steps:
 
-1. You move to the cloned *ddd-java* directory.
-1. Run command `./gradlew bootRun --args='--spring.profiles.active=dev'`.
-1. If console show "Started Application", start is completed in port 8080
-1. Run command `curl http://localhost:8080/actuator/health`
+1. Navigate to the cloned *ddd-java* directory.
+1. Run the command `./gradlew bootRun --args='--spring.profiles.active=dev'`.
+1. If the console shows "Started Application", the server has started on port 8080.
+1. Run the command `curl http://localhost:8080/actuator/health`.
 
 ### Check Use Case
 
-After launching the server on port 8080, you can test execution of RESTful API by accessing the following URL from console.
+After launching the server on port 8080, you can test the RESTful API execution by accessing the following URLs from the console:
 
 #### Customer Use Case
 
 - `curl -X POST -H "Content-Type: application/json" -d '{"accountId"  : "sample" , "currency" : "JPY", "absAmount": 1000}' http://localhost:8080/asset/cio/withdraw`
-    - Request for withdrawal.
+    - Request a withdrawal.
 - `curl 'http://localhost:8080/asset/cio/unprocessedOut'`
-    - Search for outstanding withdrawal requests
+    - Search for outstanding withdrawal requests.
 
 #### Internal Use Case
 
 - `curl 'http://localhost:8080/admin/asset/cio?updFromDay=yyyy-MM-dd&updToDay=yyyy-MM-dd'`
     - Search for deposit and withdrawal requests.
-    - Please set real date for upd\*Day
+    - Please set actual dates for upd\*Day parameters.
 
 #### Batch Use Case
 
 - `curl -X POST http://localhost:8080/system/job/daily/closingCashOut`
-    - Close the withdrawal request.
+    - Close withdrawal requests.
 - `curl -X POST http://localhost:8080/system/job/daily/processDay`
-    - Set the business day to the next day.
+    - Advance the business day to the next day.
 - `curl -X POST http://localhost:8080/system/job/daily/realizeCashflow`
-    - Realize cash flow. (Reflected to the balance on the delivery date)
+    - Realize cash flow. (Reflects to the balance on the delivery date)
 
-> Please execute according to the business day appropriately
+> Please execute these according to the business day appropriately.
 
 ### License
 
-The license of this sample includes a code and is all *MIT License*.
-Use it as a base implementation at the time of the project start using Spring Boot.
+The license for this sample code is *MIT License*.
+Use it as a base implementation when starting a project using Spring Boot.

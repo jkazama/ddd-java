@@ -2,6 +2,7 @@ package sample.context.uid;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ public class IdGenerator {
             case "CashInOut":
                 return formatCashInOut(nextValue(key));
             default:
-                throw new IllegalArgumentException("Unsupported generation key. [" + key + "]");
+                return UUID.randomUUID().toString().replace("-", "");
         }
     }
 

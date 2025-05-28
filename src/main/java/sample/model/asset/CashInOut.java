@@ -6,18 +6,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.relational.core.mapping.Table;
+
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.Data;
 import sample.ActionStatusType;
 import sample.context.DomainEntity;
 import sample.context.DomainHelper;
 import sample.context.Dto;
-import sample.context.orm.JpqlBuilder;
 import sample.context.orm.OrmRepository;
 import sample.model.DomainErrorKeys;
 import sample.model.account.FiAccount;
@@ -39,44 +38,48 @@ import sample.util.Validator;
  * low: It is a sample, a branch and a name, and considerably originally omit
  * required information.
  */
-@Entity
-@Data
-public class CashInOut implements DomainEntity {
-    @Id
-    @IdStr
-    private String id;
-    @AccountId
-    private String accountId;
-    @Currency
-    private String currency;
-    @AbsAmount
-    private BigDecimal absAmount;
-    private boolean withdrawal;
-    @ISODate
-    private LocalDate requestDay;
-    @ISODateTime
-    private LocalDateTime requestDate;
-    @ISODate
-    private LocalDate eventDay;
-    @ISODate
-    private LocalDate valueDay;
-    @IdStr
-    private String targetFiCode;
-    @AccountId
-    private String targetFiAccountId;
-    @IdStr
-    private String selfFiCode;
-    @AccountId
-    private String selfFiAccountId;
-    @NotNull
-    @Enumerated
-    private ActionStatusType statusType;
-    @AccountId
-    private String updateActor;
-    @ISODateTime
-    private LocalDateTime updateDate;
-    /** Set only with a processed status. */
-    private Long cashflowId;
+@Table("CASH_IN_OUT")
+@Builder
+public record CashInOut(
+        @Id @IdStr String id,
+        @AccountId String accountId,
+        @Currency String currency,
+        @AbsAmount BigDecimal absAmount,
+        boolean withdrawal,
+        @ISODate LocalDate requestDay,
+        @ISODateTime LocalDateTime requestDate,
+        @ISODate LocalDate eventDay,
+        @ISODate LocalDate valueDay,
+        @IdStr String targetFiCode,
+        @AccountId String targetFiAccountId,
+        @IdStr String selfFiCode,
+        @AccountId String selfFiAccountId,
+        @NotNull ActionStatusType statusType,
+        @AccountId String updateActor,
+        @ISODateTime LocalDateTime updateDate,
+        /** Set only with a processed status. */
+        String cashflowId) implements DomainEntity {
+
+    public CashInOutBuilder copyBuilder() {
+        return CashInOut.builder()
+                .id(this.id)
+                .accountId(this.accountId)
+                .currency(this.currency)
+                .absAmount(this.absAmount)
+                .withdrawal(this.withdrawal)
+                .requestDay(this.requestDay)
+                .requestDate(this.requestDate)
+                .eventDay(this.eventDay)
+                .valueDay(this.valueDay)
+                .targetFiCode(this.targetFiCode)
+                .targetFiAccountId(this.targetFiAccountId)
+                .selfFiCode(this.selfFiCode)
+                .selfFiAccountId(this.selfFiAccountId)
+                .statusType(this.statusType)
+                .updateActor(this.updateActor)
+                .updateDate(this.updateDate)
+                .cashflowId(this.cashflowId);
+    }
 
     /**
      * Processed status.
@@ -89,11 +92,13 @@ public class CashInOut implements DomainEntity {
             v.verify(statusType.isUnprocessed(), DomainErrorKeys.STATUS_PROCESSING);
             v.verify(now.afterEqualsDay(eventDay), AssetErrorKeys.CIO_EVENT_DAY_AFTER_EQUALS_DAY);
         });
-        this.setStatusType(ActionStatusType.PROCESSED);
-        this.setUpdateActor(rep.dh().actor().id());
-        this.setUpdateDate(now.getDate());
-        this.setCashflowId(Cashflow.register(rep, regCf()).getId());
-        return rep.update(this);
+
+        return rep.update(this.copyBuilder()
+                .statusType(ActionStatusType.PROCESSED)
+                .updateActor(rep.dh().actor().id())
+                .updateDate(now.date())
+                .cashflowId(Cashflow.register(rep, regCf()).id())
+                .build());
     }
 
     private RegCashflow regCf() {
@@ -118,10 +123,12 @@ public class CashInOut implements DomainEntity {
             v.verify(statusType.isUnprocessing(), DomainErrorKeys.STATUS_PROCESSING);
             v.verify(now.beforeDay(eventDay), AssetErrorKeys.CIO_EVENT_DAY_BEFORE_EQUALS_DAY);
         });
-        this.setStatusType(ActionStatusType.CANCELLED);
-        this.setUpdateActor(rep.dh().actor().id());
-        this.setUpdateDate(now.getDate());
-        return rep.update(this);
+
+        return rep.update(this.copyBuilder()
+                .statusType(ActionStatusType.CANCELLED)
+                .updateActor(rep.dh().actor().id())
+                .updateDate(now.date())
+                .build());
     }
 
     /**
@@ -133,24 +140,36 @@ public class CashInOut implements DomainEntity {
             v.verify(statusType.isUnprocessed(), DomainErrorKeys.STATUS_PROCESSING);
         });
 
-        this.setStatusType(ActionStatusType.ERROR);
-        this.setUpdateActor(rep.dh().actor().id());
-        this.setUpdateDate(rep.dh().time().date());
-        return rep.update(this);
+        return rep.update(this.copyBuilder()
+                .statusType(ActionStatusType.ERROR)
+                .updateActor(rep.dh().actor().id())
+                .updateDate(rep.dh().time().date())
+                .build());
     }
 
     public static CashInOut load(final OrmRepository rep, String id) {
         return rep.load(CashInOut.class, id);
     }
 
-    /** low: JpqlBuilder implementation example */
+    /** Criteria API implementation example */
     public static List<CashInOut> find(final OrmRepository rep, final FindCashInOut p) {
-        var jpql = JpqlBuilder.of("FROM CashInOut cio")
-                .equal("cio.currency", p.currency())
-                .in("cio.statusType", p.statusTypes())
-                .between("cio.eventDay", p.updFromDay(), p.updToDay())
-                .orderBy("cio.updateDate DESC");
-        return rep.tmpl().find(jpql.build(), jpql.args());
+        Sort sort = Sort.by(Sort.Direction.DESC, "updateDate");
+        return rep.tmpl().find(CashInOut.class, criteria -> {
+            var c = criteria;
+            if (p.currency() != null && !p.currency().isEmpty()) {
+                c = c.and("currency").is(p.currency());
+            }
+            if (p.statusTypes() != null && !p.statusTypes().isEmpty()) {
+                c = c.and("statusType").in(p.statusTypes());
+            }
+            if (p.updFromDay() != null) {
+                c = c.and("eventDay").greaterThanOrEquals(p.updFromDay());
+            }
+            if (p.updToDay() != null) {
+                c = c.and("eventDay").lessThanOrEquals(p.updToDay());
+            }
+            return c;
+        }, sort);
     }
 
     @Builder
@@ -171,41 +190,34 @@ public class CashInOut implements DomainEntity {
     }
 
     public static List<CashInOut> findUnprocessed(final OrmRepository rep) {
-        var jpql = """
-                FROM CashInOut cio
-                WHERE cio.eventDay=?1 AND cio.statusType IN ?2
-                ORDER BY cio.id
-                """;
-        return rep.tmpl().find(jpql, rep.dh().time().day(), ActionStatusType.UNPROCESSED_TYPES);
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        return rep.tmpl().find(CashInOut.class, criteria -> criteria
+                .and("eventDay").is(rep.dh().time().day())
+                .and("statusType").in(ActionStatusType.UNPROCESSED_TYPES), sort);
     }
 
     public static List<CashInOut> findUnprocessed(
             final OrmRepository rep, String accountId, String currency, boolean withdrawal) {
-        var jpql = """
-                FROM CashInOut cio
-                WHERE cio.accountId=?1 AND cio.currency=?2
-                 AND cio.withdrawal=?3 AND cio.statusType IN ?4
-                 ORDER BY cio.id
-                """;
-        return rep.tmpl().find(
-                jpql, accountId, currency, withdrawal, ActionStatusType.UNPROCESSED_TYPES);
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        return rep.tmpl().find(CashInOut.class, criteria -> criteria
+                .and("accountId").is(accountId)
+                .and("currency").is(currency)
+                .and("withdrawal").is(withdrawal)
+                .and("statusType").in(ActionStatusType.UNPROCESSED_TYPES), sort);
     }
 
     public static List<CashInOut> findUnprocessed(final OrmRepository rep, String accountId) {
-        var jpql = """
-                FROM CashInOut cio
-                WHERE cio.accountId=?1 AND cio.statusType IN ?2
-                ORDER BY cio.updateDate DESC
-                """;
-        return rep.tmpl().find(
-                jpql, accountId, ActionStatusType.UNPROCESSED_TYPES);
+        Sort sort = Sort.by(Sort.Direction.DESC, "updateDate");
+        return rep.tmpl().find(CashInOut.class, criteria -> criteria
+                .and("accountId").is(accountId)
+                .and("statusType").in(ActionStatusType.UNPROCESSED_TYPES), sort);
     }
 
     public static CashInOut withdraw(final OrmRepository rep, final RegCashOut p) {
         DomainHelper dh = rep.dh();
         TimePoint now = dh.time().tp();
         // low: It is often managed DB or properties.
-        LocalDate eventDay = now.getDay();
+        LocalDate eventDay = now.day();
         // low: T+N calculation that we consider the holiday of each financial
         // institution / currency.
         LocalDate valueDay = dh.time().dayPlus(3);
@@ -234,25 +246,25 @@ public class CashInOut implements DomainEntity {
         public CashInOut create(
                 final TimePoint now, String id, LocalDate eventDay, LocalDate valueDay,
                 final FiAccount acc, final SelfFiAccount selfAcc, String updActor) {
-            var m = new CashInOut();
-            m.setId(id);
-            m.setAccountId(accountId);
-            m.setCurrency(currency);
-            m.setAbsAmount(absAmount);
-            m.setWithdrawal(true);
-            m.setRequestDay(now.getDay());
-            m.setRequestDate(now.getDate());
-            m.setEventDay(eventDay);
-            m.setValueDay(valueDay);
-            m.setTargetFiCode(acc.getFiCode());
-            m.setTargetFiAccountId(acc.getFiAccountId());
-            m.setSelfFiCode(selfAcc.getFiCode());
-            m.setSelfFiAccountId(selfAcc.getFiAccountId());
-            m.setStatusType(ActionStatusType.UNPROCESSED);
-            m.setUpdateActor(updActor);
-            m.setUpdateDate(now.getDate());
-            m.setCashflowId(null);
-            return m;
+            return CashInOut.builder()
+                    .id(id)
+                    .accountId(accountId)
+                    .currency(currency)
+                    .absAmount(absAmount)
+                    .withdrawal(true)
+                    .requestDay(now.day())
+                    .requestDate(now.date())
+                    .eventDay(eventDay)
+                    .valueDay(valueDay)
+                    .targetFiCode(acc.fiCode())
+                    .targetFiAccountId(acc.fiAccountId())
+                    .selfFiCode(selfAcc.fiCode())
+                    .selfFiAccountId(selfAcc.fiAccountId())
+                    .statusType(ActionStatusType.UNPROCESSED)
+                    .updateActor(updActor)
+                    .updateDate(now.date())
+                    .cashflowId(null)
+                    .build();
         }
     }
 

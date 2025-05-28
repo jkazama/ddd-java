@@ -3,7 +3,6 @@ package sample.usecase.mail;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.context.MessageSource;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -12,24 +11,22 @@ import lombok.RequiredArgsConstructor;
 import sample.context.InvocationException;
 import sample.context.mail.MailHandler;
 import sample.context.mail.MailHandler.SendMail;
-import sample.context.orm.OrmRepository.DefaultRepository;
+import sample.context.orm.OrmRepository;
 import sample.context.orm.TxTemplate;
 import sample.model.account.Account;
 import sample.model.asset.CashInOut;
 import sample.usecase.event.AppMailEvent;
 
 /**
- * Mail deliver of the application layer.
+ * Mail delivery service of the application layer.
  * <p>
- * Manage the transaction originally, please be careful not to call it in the
- * transaction of the service.
+ * Manages transactions independently, please be careful not to call it within
+ * a service transaction.
  */
 @Component
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class ServiceMailDeliver {
-    private final MessageSource msg;
-    private final DefaultRepository rep;
+    private final OrmRepository rep;
     private final PlatformTransactionManager tx;
     private final MailHandler mail;
 
@@ -42,13 +39,13 @@ public class ServiceMailDeliver {
     }
 
     public void sendFinishRequestWithdraw(final CashInOut cio) {
-        send(cio.getAccountId(), account -> {
+        send(cio.accountId(), account -> {
             // low: Actual title and text are acquired from setting information
-            String subject = "[" + cio.getId() + "] Notification of withdrawal request acceptance";
+            String subject = "[" + cio.id() + "] Notification of withdrawal request acceptance";
             String body = "{name} …";
             Map<String, String> bodyArgs = new HashMap<>();
-            bodyArgs.put("name", account.getName());
-            return new SendMail(account.getMail(), subject, body, bodyArgs);
+            bodyArgs.put("name", account.name());
+            return new SendMail(account.mail(), subject, body, bodyArgs);
         });
     }
 

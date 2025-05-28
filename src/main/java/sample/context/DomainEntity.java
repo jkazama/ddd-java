@@ -20,4 +20,6 @@ package sample.context;
  */
 public interface DomainEntity {
 
+    Object id();
+
 }

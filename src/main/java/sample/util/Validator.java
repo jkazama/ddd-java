@@ -3,13 +3,13 @@ package sample.util;
 import java.util.function.Consumer;
 
 import sample.context.ValidationException;
-import sample.context.ValidationException.Warns;
+import sample.util.Warns.WarnsBuilder;
 
 /**
- * Construction concept of the examination exception.
+ * Construction concept for validation exceptions.
  */
 public final class Validator {
-    private Warns warns = Warns.init();
+    private final WarnsBuilder builder = Warns.builder();
 
     public static void validate(Consumer<Validator> proc) {
         var validator = new Validator();
@@ -17,46 +17,41 @@ public final class Validator {
         validator.verify();
     }
 
-    /** An global exception stacks inside if valid is false. */
+    /** Stacks a global exception internally if valid is false. */
     public Validator check(boolean valid, String message) {
         if (!valid) {
-            warns.add(message);
+            builder.add(message);
         }
         return this;
     }
 
-    /** An field exception stacks inside if valid is false. */
+    /** Stacks a field exception internally if valid is false. */
     public Validator checkField(boolean valid, String field, String message) {
         if (!valid) {
-            warns.add(field, message);
+            builder.addField(field, message);
         }
         return this;
     }
 
-    /** An global exception occurs if valid is false. */
+    /** Throws a global exception if valid is false. */
     public Validator verify(boolean valid, String message) {
         return check(valid, message).verify();
     }
 
-    /** An field exception occurs if valid is false. */
+    /** Throws a field exception if valid is false. */
     public Validator verifyField(boolean valid, String field, String message) {
         return checkField(valid, field, message).verify();
     }
 
     public Validator verify() {
         if (hasWarn()) {
-            throw new ValidationException(warns);
+            throw ValidationException.of(builder);
         }
-        return clear();
+        return this;
     }
 
     public boolean hasWarn() {
-        return warns.nonEmpty();
-    }
-
-    public Validator clear() {
-        warns.list().clear();
-        return this;
+        return builder.build().hasError();
     }
 
 }

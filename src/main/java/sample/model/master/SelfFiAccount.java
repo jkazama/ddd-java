@@ -1,9 +1,9 @@
 package sample.model.master;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+
+import lombok.Builder;
 import sample.context.DomainEntity;
 import sample.context.orm.OrmRepository;
 import sample.model.constraints.AccountId;
@@ -16,27 +16,28 @@ import sample.model.constraints.IdStr;
  * low: It is a sample, a branch and a name, and considerably originally omit
  * required information.
  */
-@Entity
-@Data
-public class SelfFiAccount implements DomainEntity {
-    @Id
-    @GeneratedValue
-    private Long id;
-    @Category
-    private String category;
-    @Currency
-    private String currency;
-    @IdStr
-    private String fiCode;
-    @AccountId
-    private String fiAccountId;
+@Table("SELF_FI_ACCOUNT")
+@Builder
+public record SelfFiAccount(
+        @Id String id,
+        @Category String category,
+        @Currency String currency,
+        @IdStr String fiCode,
+        @AccountId String fiAccountId) implements DomainEntity {
+
+    public SelfFiAccountBuilder copyBuilder() {
+        return SelfFiAccount.builder()
+                .id(this.id)
+                .category(this.category)
+                .currency(this.currency)
+                .fiCode(this.fiCode)
+                .fiAccountId(this.fiAccountId);
+    }
 
     public static SelfFiAccount load(final OrmRepository rep, String category, String currency) {
-        var jpql = """
-                FROM SelfFiAccount a
-                WHERE a.category=?1 AND a.currency=?2
-                """;
-        return rep.tmpl().load(jpql, category, currency);
+        return rep.tmpl().load(SelfFiAccount.class, criteria -> criteria
+                .and("category").is(category)
+                .and("currency").is(currency));
     }
 
 }

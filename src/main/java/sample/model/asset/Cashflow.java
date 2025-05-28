@@ -5,15 +5,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.relational.core.mapping.Table;
+
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.Data;
 import sample.ActionStatusType;
 import sample.context.DomainEntity;
+import sample.context.DomainHelper;
 import sample.context.Dto;
 import sample.context.orm.OrmRepository;
 import sample.model.DomainErrorKeys;
@@ -34,37 +34,37 @@ import sample.util.Validator;
  * such as the transfer (without the request cancellation).
  * low: The minimum columns with this sample
  */
-@Entity
-@Data
-public class Cashflow implements DomainEntity {
+@Table("CASHFLOW")
+@Builder
+public record Cashflow(
+        @Id String id,
+        @AccountId String accountId,
+        @Currency String currency,
+        @Amount BigDecimal amount,
+        @NotNull CashflowType cashflowType,
+        @Category String remark,
+        @ISODate LocalDate eventDay,
+        @ISODateTime LocalDateTime eventDate,
+        @ISODate LocalDate valueDay,
+        @NotNull ActionStatusType statusType,
+        @AccountId String updateActor,
+        @ISODateTime LocalDateTime updateDate) implements DomainEntity {
 
-    @Id
-    @GeneratedValue
-    private Long id;
-    @AccountId
-    private String accountId;
-    @Currency
-    private String currency;
-    @Amount
-    private BigDecimal amount;
-    @NotNull
-    @Enumerated
-    private CashflowType cashflowType;
-    @Category
-    private String remark;
-    @ISODate
-    private LocalDate eventDay;
-    @ISODateTime
-    private LocalDateTime eventDate;
-    @ISODate
-    private LocalDate valueDay;
-    @NotNull
-    @Enumerated
-    private ActionStatusType statusType;
-    @AccountId
-    private String updateActor;
-    @ISODateTime
-    private LocalDateTime updateDate;
+    public CashflowBuilder copyBuilder() {
+        return Cashflow.builder()
+                .id(this.id)
+                .accountId(this.accountId)
+                .currency(this.currency)
+                .amount(this.amount)
+                .cashflowType(this.cashflowType)
+                .remark(this.remark)
+                .eventDay(this.eventDay)
+                .eventDate(this.eventDate)
+                .valueDay(this.valueDay)
+                .statusType(this.statusType)
+                .updateActor(this.updateActor)
+                .updateDate(this.updateDate);
+    }
 
     /** Make cashflow processed and reflect it to the balance. */
     public Cashflow realize(final OrmRepository rep) {
@@ -74,12 +74,13 @@ public class Cashflow implements DomainEntity {
             v.verify(statusType.isUnprocessing(), DomainErrorKeys.STATUS_PROCESSING);
         });
 
-        this.setStatusType(ActionStatusType.PROCESSED);
-        this.setUpdateActor(rep.dh().actor().id());
-        this.setUpdateDate(now.getDate());
-        rep.update(this);
+        Cashflow updatedCashflow = rep.update(this.copyBuilder()
+                .statusType(ActionStatusType.PROCESSED)
+                .updateActor(rep.dh().actor().id())
+                .updateDate(now.date())
+                .build());
         CashBalance.getOrNew(rep, accountId, currency).add(rep, amount);
-        return this;
+        return updatedCashflow;
     }
 
     /**
@@ -91,39 +92,36 @@ public class Cashflow implements DomainEntity {
             v.verify(statusType.isUnprocessed(), DomainErrorKeys.STATUS_PROCESSING);
         });
 
-        this.setStatusType(ActionStatusType.ERROR);
-        this.setUpdateActor(rep.dh().actor().id());
-        this.setUpdateDate(rep.dh().time().date());
-        return rep.update(this);
+        return rep.update(this.copyBuilder()
+                .statusType(ActionStatusType.ERROR)
+                .updateActor(rep.dh().actor().id())
+                .updateDate(rep.dh().time().date())
+                .build());
     }
 
     public boolean canRealize(final OrmRepository rep) {
         return rep.dh().time().tp().afterEqualsDay(valueDay);
     }
 
-    public static Cashflow load(final OrmRepository rep, Long id) {
+    public static Cashflow load(final OrmRepository rep, String id) {
         return rep.load(Cashflow.class, id);
     }
 
     public static List<Cashflow> findUnrealize(
             final OrmRepository rep, String accountId, String currency, LocalDate valueDay) {
-        var jpql = """
-                FROM Cashflow c
-                WHERE c.accountId=?1 AND c.currency=?2
-                 AND c.valueDay<=?3 AND c.statusType IN ?4
-                ORDER BY c.id
-                """;
-        return rep.tmpl().find(jpql,
-                accountId, currency, valueDay, ActionStatusType.UNPROCESSED_TYPES);
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        return rep.tmpl().find(Cashflow.class, criteria -> criteria
+                .and("accountId").is(accountId)
+                .and("currency").is(currency)
+                .and("valueDay").lessThanOrEquals(valueDay)
+                .and("statusType").in(ActionStatusType.UNPROCESSED_TYPES), sort);
     }
 
     public static List<Cashflow> findDoRealize(final OrmRepository rep, LocalDate valueDay) {
-        var jpql = """
-                FROM Cashflow c
-                WHERE c.valueDay=?1 AND c.statusType in ?2
-                ORDER BY c.id
-                """;
-        return rep.tmpl().find(jpql, valueDay, ActionStatusType.UNPROCESSED_TYPES);
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        return rep.tmpl().find(Cashflow.class, criteria -> criteria
+                .and("valueDay").is(valueDay)
+                .and("statusType").in(ActionStatusType.UNPROCESSED_TYPES), sort);
     }
 
     /**
@@ -137,7 +135,7 @@ public class Cashflow implements DomainEntity {
             v.checkField(now.beforeEqualsDay(p.valueDay()),
                     "valueDay", "error.Cashflow.beforeEqualsDay");
         });
-        Cashflow cf = rep.save(p.create(now, rep.dh().actor().id()));
+        Cashflow cf = rep.save(p.create(rep.dh()));
         return cf.canRealize(rep) ? cf.realize(rep) : cf;
     }
 
@@ -159,21 +157,25 @@ public class Cashflow implements DomainEntity {
             @ISODateEmpty LocalDate eventDay,
             @ISODate LocalDate valueDay) implements Dto {
 
-        public Cashflow create(final TimePoint now, String updActor) {
-            var eventDate = eventDay == null ? now : new TimePoint(eventDay, now.getDate());
-            var m = new Cashflow();
-            m.setAccountId(accountId);
-            m.setCurrency(currency);
-            m.setAmount(amount);
-            m.setCashflowType(cashflowType);
-            m.setRemark(remark);
-            m.setEventDay(eventDate.getDay());
-            m.setEventDate(eventDate.getDate());
-            m.setValueDay(valueDay);
-            m.setStatusType(ActionStatusType.UNPROCESSED);
-            m.setUpdateActor(updActor);
-            m.setUpdateDate(now.getDate());
-            return m;
+        public Cashflow create(final DomainHelper dh) {
+            var now = dh.time().tp();
+            var id = dh.uid().generate(Cashflow.class.getSimpleName());
+            var eventDate = eventDay == null ? now : new TimePoint(eventDay, now.date());
+            var updActor = dh.actor().id();
+            return Cashflow.builder()
+                    .id(id)
+                    .accountId(accountId)
+                    .currency(currency)
+                    .amount(amount)
+                    .cashflowType(cashflowType)
+                    .remark(remark)
+                    .eventDay(eventDate.day())
+                    .eventDate(eventDate.date())
+                    .valueDay(valueDay)
+                    .statusType(ActionStatusType.UNPROCESSED)
+                    .updateActor(updActor)
+                    .updateDate(now.date())
+                    .build();
         }
     }
 

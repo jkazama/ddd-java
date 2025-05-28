@@ -3,7 +3,7 @@ package sample;
 import java.util.List;
 
 /**
- * Processing status concept about some kind of acts.
+ * Processing status concept for various types of actions.
  */
 public enum ActionStatusType {
     UNPROCESSED,

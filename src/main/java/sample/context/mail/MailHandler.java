@@ -10,8 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Send and receive mail.
- * low: In the sample, only I / F for sending mail is created. In practice it
- * also supports receiving emails such as POP3 / IMAP.
+ * low: In the sample, only the interface for sending mail is created. In
+ * practice, it
+ * also supports receiving emails such as POP3/IMAP.
  */
 @Component
 @Slf4j
@@ -31,7 +32,7 @@ public class MailHandler {
         return this;
     }
 
-    /** メール送信パラメタ。 */
+    /** Mail sending parameters. */
     @Builder
     public static record SendMail(
             String address,

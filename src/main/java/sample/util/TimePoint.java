@@ -3,9 +3,7 @@ package sample.util;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
 import sample.model.constraints.ISODate;
 import sample.model.constraints.ISODateTime;
 
@@ -14,14 +12,10 @@ import sample.model.constraints.ISODateTime;
  * <p>
  * A business day uses it with the case which is not 0:00.
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class TimePoint {
-    @ISODate
-    private LocalDate day;
-    @ISODateTime
-    private LocalDateTime date;
+@Builder
+public record TimePoint(
+        @ISODate LocalDate day,
+        @ISODateTime LocalDateTime date) {
 
     /** day == targetDay */
     public boolean equalsDay(LocalDate targetDay) {

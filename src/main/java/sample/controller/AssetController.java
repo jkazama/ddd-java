@@ -71,19 +71,19 @@ public class AssetController {
             LocalDate valueDay,
             ActionStatusType statusType,
             LocalDateTime updateDate,
-            Long cashflowId) implements Dto {
+            String cashflowId) implements Dto {
         public static UserCashOut of(final CashInOut cio) {
             return UserCashOut.builder()
-                    .id(cio.getId())
-                    .currency(cio.getCurrency())
-                    .absAmount(cio.getAbsAmount())
-                    .requestDay(cio.getRequestDay())
-                    .requestDate(cio.getRequestDate())
-                    .eventDay(cio.getEventDay())
-                    .valueDay(cio.getValueDay())
-                    .statusType(cio.getStatusType())
-                    .updateDate(cio.getUpdateDate())
-                    .cashflowId(cio.getCashflowId())
+                    .id(cio.id())
+                    .currency(cio.currency())
+                    .absAmount(cio.absAmount())
+                    .requestDay(cio.requestDay())
+                    .requestDate(cio.requestDate())
+                    .eventDay(cio.eventDay())
+                    .valueDay(cio.valueDay())
+                    .statusType(cio.statusType())
+                    .updateDate(cio.updateDate())
+                    .cashflowId(cio.cashflowId())
                     .build();
         }
     }

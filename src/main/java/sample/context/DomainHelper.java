@@ -20,8 +20,13 @@ public interface DomainHelper {
         return ActorSession.actor();
     }
 
+    /** Returns the timestamp utility. */
     Timestamper time();
 
+    /** Returns the message accessor. */
+    MessageAccessor msg();
+
+    /** Returns the ID generator. */
     IdGenerator uid();
 
     @Component
@@ -29,11 +34,17 @@ public interface DomainHelper {
     public static class DomainHelperImpl implements DomainHelper {
         private final ObjectProvider<Timestamper> time;
         private final ObjectProvider<IdGenerator> uid;
+        private final ObjectProvider<MessageAccessor> msg;
         private final ObjectProviderAccessor accessor;
 
         @Override
         public Timestamper time() {
             return this.accessor.bean(this.time, Timestamper.class);
+        }
+
+        @Override
+        public MessageAccessor msg() {
+            return this.accessor.bean(this.msg, MessageAccessor.class);
         }
 
         @Override

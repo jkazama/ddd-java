@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import sample.context.actor.Actor;
 import sample.context.audit.AuditHandler;
 import sample.context.lock.IdLockHandler;
-import sample.context.orm.OrmRepository.DefaultRepository;
+import sample.context.orm.OrmRepository;
 import sample.context.orm.TxTemplate;
 import sample.model.asset.CashInOut;
 import sample.model.asset.CashInOut.RegCashOut;
@@ -23,7 +23,7 @@ import sample.usecase.event.type.AppMailType;
 @Service
 @RequiredArgsConstructor
 public class AssetService {
-    private final DefaultRepository rep;
+    private final OrmRepository rep;
     private final PlatformTransactionManager txm;
     private final AuditHandler audit;
     private final IdLockHandler idLock;
@@ -48,7 +48,7 @@ public class AssetService {
             });
             // low: this service e-mail it and notify user.
             this.event.publishEvent(AppMailEvent.of(AppMailType.FINISH_REQUEST_WITHDRAW, cio));
-            return cio.getId();
+            return cio.id();
         });
     }
 

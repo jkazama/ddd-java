@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import sample.context.audit.AuditHandler;
 import sample.context.lock.IdLockHandler;
 import sample.context.lock.IdLockHandler.LockType;
-import sample.context.orm.OrmRepository.DefaultRepository;
+import sample.context.orm.OrmRepository;
 import sample.context.orm.TxTemplate;
 import sample.model.asset.CashInOut;
 import sample.model.asset.CashInOut.FindCashInOut;
@@ -24,7 +24,7 @@ import sample.model.asset.Cashflow;
 @Slf4j
 public class AssetAdminService {
 
-    private final DefaultRepository rep;
+    private final OrmRepository rep;
     private final PlatformTransactionManager txm;
     private final AuditHandler audit;
     private final IdLockHandler idLock;
@@ -48,16 +48,13 @@ public class AssetAdminService {
         // low: Divide paging by id sort and carry it out for a difference
         // because heaps overflow when just do it in large quantities.
         CashInOut.findUnprocessed(rep).forEach(cio -> {
-            idLock.call(cio.getAccountId(), LockType.WRITE, () -> {
+            idLock.call(cio.accountId(), LockType.WRITE, () -> {
                 try {
                     cio.process(rep);
-                    // low: Guarantee that SQL is carried out.
-                    rep.flushAndClear();
                 } catch (Exception e) {
-                    log.error("[" + cio.getId() + "] Failure closing cash out.", e);
+                    log.error("[" + cio.id() + "] Failure closing cash out.", e);
                     try {
                         cio.error(rep);
-                        rep.flush();
                     } catch (Exception ex) {
                         // low: Keep it for a mention only for logger which is a double obstacle.
                         // (probably DB is caused)
@@ -80,15 +77,13 @@ public class AssetAdminService {
         // low: Expect the practice after the rollover day.
         var day = rep.dh().time().day();
         for (final Cashflow cf : Cashflow.findDoRealize(rep, day)) {
-            idLock.call(cf.getAccountId(), LockType.WRITE, () -> {
+            idLock.call(cf.accountId(), LockType.WRITE, () -> {
                 try {
                     cf.realize(rep);
-                    rep.flushAndClear();
                 } catch (Exception e) {
-                    log.error("[" + cf.getId() + "] Failure realize cashflow.", e);
+                    log.error("[" + cf.id() + "] Failure realize cashflow.", e);
                     try {
                         cf.error(rep);
-                        rep.flush();
                     } catch (Exception ex) {
                     }
                 }

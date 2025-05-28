@@ -2,43 +2,46 @@ package sample.model.account;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.AfterEach;
+import javax.sql.DataSource;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
+import org.springframework.data.jdbc.core.JdbcAggregateTemplate;
+import org.springframework.test.context.ActiveProfiles;
 
 import sample.context.ValidationException;
 import sample.model.DataFixtures;
 import sample.model.DomainTester;
-import sample.model.DomainTester.DomainTesterBuilder;
 import sample.model.account.Account.AccountStatusType;
 
+@DataJdbcTest
+@ActiveProfiles("test")
 public class AccountTest {
+    @Autowired
+    private DataSource dataSource;
+    @Autowired
+    private JdbcAggregateTemplate jdbcTemplate;
+
     private DomainTester tester;
 
     @BeforeEach
     public void before() {
-        tester = DomainTesterBuilder.from(Account.class).build();
-    }
-
-    @AfterEach
-    public void after() {
-        tester.close();
+        tester = DomainTester.create(jdbcTemplate, dataSource);
     }
 
     @Test
     public void loadActive() {
         tester.tx(rep -> {
-            rep.save(DataFixtures.acc("normal"));
-            rep.flushAndClear(); // clear session cache
+            rep.save(DataFixtures.acc("normal").build());
             Account account = Account.loadActive(rep, "normal");
-            assertEquals("normal", account.getId());
-            assertEquals(AccountStatusType.NORMAL, account.getStatusType());
+            assertEquals("normal", account.id());
+            assertEquals(AccountStatusType.NORMAL, account.statusType());
 
-            // 退会時取得検証
-            Account withdrawal = DataFixtures.acc("withdraw");
-            withdrawal.setStatusType(AccountStatusType.WITHDRAWAL);
+            // Verification when withdrawal account is loaded
+            Account withdrawal = DataFixtures.acc("withdraw").statusType(AccountStatusType.WITHDRAWAL).build();
             rep.save(withdrawal);
-            rep.flushAndClear(); // clear session cache
             try {
                 Account.loadActive(rep, "withdraw");
             } catch (ValidationException e) {

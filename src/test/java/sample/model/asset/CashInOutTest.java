@@ -10,9 +10,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 
-import org.junit.jupiter.api.AfterEach;
+import javax.sql.DataSource;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
+import org.springframework.data.jdbc.core.JdbcAggregateTemplate;
+import org.springframework.test.context.ActiveProfiles;
 
 import sample.ActionStatusType;
 import sample.context.ValidationException;
@@ -21,15 +26,18 @@ import sample.context.actor.ActorSession;
 import sample.model.DataFixtures;
 import sample.model.DomainErrorKeys;
 import sample.model.DomainTester;
-import sample.model.DomainTester.DomainTesterBuilder;
-import sample.model.account.Account;
 import sample.model.asset.CashInOut.FindCashInOut;
 import sample.model.asset.CashInOut.RegCashOut;
 import sample.model.asset.Cashflow.CashflowType;
-import sample.model.master.SelfFiAccount;
 import sample.util.TimePoint;
 
+@DataJdbcTest
+@ActiveProfiles("test")
 public class CashInOutTest {
+    @Autowired
+    private DataSource dataSource;
+    @Autowired
+    private JdbcAggregateTemplate jdbcTemplate;
 
     private static final String ccy = "JPY";
     private static final String accId = "test";
@@ -39,26 +47,22 @@ public class CashInOutTest {
 
     @BeforeEach
     public void before() {
-        tester = DomainTesterBuilder.from(Account.class, SelfFiAccount.class, CashInOut.class).build();
+        tester = DomainTester.create(jdbcTemplate, dataSource);
         tester.txInitializeData(rep -> {
-            rep.save(DataFixtures.selfFiAcc(Remarks.CASH_OUT, ccy));
-            rep.save(DataFixtures.acc(accId));
-            rep.save(DataFixtures.fiAcc(accId, Remarks.CASH_OUT, ccy));
-            rep.save(DataFixtures.cb(accId, baseDay, ccy, "1000"));
+            rep.save(DataFixtures.selfFiAcc(rep.dh(), Remarks.CASH_OUT, ccy).build());
+            rep.save(DataFixtures.acc(accId).build());
+            rep.save(DataFixtures.fiAcc(rep.dh(), accId, Remarks.CASH_OUT, ccy).build());
+            rep.save(DataFixtures.cb(rep.dh(), accId, baseDay, ccy, "1000").build());
         });
-    }
-
-    @AfterEach
-    public void after() {
-        tester.close();
     }
 
     @Test
     public void find() {
         tester.tx(rep -> {
             TimePoint now = rep.dh().time().tp();
-            CashInOut cio = DataFixtures.cio("1", accId, "300", true, now);
-            cio.setEventDay(LocalDate.of(2014, 11, 18));
+            CashInOut cio = DataFixtures.cio("1", accId, "300", true, now)
+                    .eventDay(LocalDate.of(2014, 11, 18))
+                    .build();
             rep.save(cio);
             assertEquals(
                     1,
@@ -96,37 +100,37 @@ public class CashInOutTest {
                 CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("1001")));
                 fail();
             } catch (ValidationException e) {
-                assertEquals(AssetErrorKeys.CIO_WITHDRAWAL_AMOUNT, e.getMessage());
+                assertEquals(AssetErrorKeys.CIO_WITHDRAWAL_AMOUNT, e.warns().fieldError("absAmount").get().message());
             }
 
             try {
                 CashInOut.withdraw(rep, new RegCashOut(accId, ccy, BigDecimal.ZERO));
                 fail();
             } catch (ValidationException e) {
-                assertEquals("error.domain.AbsAmount.zero", e.getMessage());
+                assertEquals("error.domain.AbsAmount.zero", e.warns().fieldError("absAmount").get().message());
             }
 
             CashInOut normal = CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("300")));
-            assertEquals(accId, normal.getAccountId());
-            assertEquals(ccy, normal.getCurrency());
-            assertEquals(new BigDecimal("300"), normal.getAbsAmount());
-            assertTrue(normal.isWithdrawal());
-            assertEquals(baseDay, normal.getRequestDay());
-            assertEquals(baseDay, normal.getEventDay());
-            assertEquals(LocalDate.of(2014, 11, 21), normal.getValueDay());
-            assertEquals(Remarks.CASH_OUT + "-" + ccy, normal.getTargetFiCode());
-            assertEquals("FI" + accId, normal.getTargetFiAccountId());
-            assertEquals(Remarks.CASH_OUT + "-" + ccy, normal.getSelfFiCode());
-            assertEquals("xxxxxx", normal.getSelfFiAccountId());
-            assertEquals(ActionStatusType.UNPROCESSED, normal.getStatusType());
-            assertNull(normal.getCashflowId());
+            assertEquals(accId, normal.accountId());
+            assertEquals(ccy, normal.currency());
+            assertEquals(new BigDecimal("300"), normal.absAmount().setScale(0));
+            assertTrue(normal.withdrawal());
+            assertEquals(baseDay, normal.requestDay());
+            assertEquals(baseDay, normal.eventDay());
+            assertEquals(LocalDate.of(2014, 11, 21), normal.valueDay());
+            assertEquals(Remarks.CASH_OUT + "-" + ccy, normal.targetFiCode());
+            assertEquals("FI" + accId, normal.targetFiAccountId());
+            assertEquals(Remarks.CASH_OUT + "-" + ccy, normal.selfFiCode());
+            assertEquals("xxxxxx", normal.selfFiAccountId());
+            assertEquals(ActionStatusType.UNPROCESSED, normal.statusType());
+            assertNull(normal.cashflowId());
 
-            // 拘束額を考慮した出金依頼 [例外]
+            // Withdrawal request considering restricted amount [Exception]
             try {
                 CashInOut.withdraw(rep, new RegCashOut(accId, ccy, new BigDecimal("701")));
                 fail();
             } catch (ValidationException e) {
-                assertEquals(AssetErrorKeys.CIO_WITHDRAWAL_AMOUNT, e.getMessage());
+                assertEquals(AssetErrorKeys.CIO_WITHDRAWAL_AMOUNT, e.warns().fieldError("absAmount").get().message());
             }
         });
     }
@@ -136,14 +140,14 @@ public class CashInOutTest {
         tester.tx(rep -> {
             TimePoint tp = rep.dh().time().tp();
             // Cancel a request of the CF having not yet processed
-            CashInOut normal = rep.save(DataFixtures.cio("1", accId, "300", true, tp));
-            assertEquals(ActionStatusType.CANCELLED, normal.cancel(rep).getStatusType());
+            CashInOut normal = rep.save(DataFixtures.cio("1", accId, "300", true, tp).build());
+            assertEquals(ActionStatusType.CANCELLED, normal.cancel(rep).statusType());
 
             // When Reach an event day, I cannot cancel it. [ValidationException]
-            CashInOut today = DataFixtures.cio("2", accId, "300", true, tp);
-            today.setEventDay(LocalDate.of(2014, 11, 18));
+            CashInOut today = DataFixtures.cio("2", accId, "300", true, tp)
+                    .eventDay(LocalDate.of(2014, 11, 18))
+                    .build();
             rep.save(today);
-            rep.flushAndClear();
             try {
                 today.cancel(rep);
                 fail();
@@ -157,19 +161,20 @@ public class CashInOutTest {
     public void error() {
         tester.tx(rep -> {
             TimePoint tp = rep.dh().time().tp();
-            CashInOut normal = rep.save(DataFixtures.cio("1", accId, "300", true, tp));
-            assertEquals(ActionStatusType.ERROR, normal.error(rep).getStatusType());
+            CashInOut normal = rep.save(DataFixtures.cio("1", accId, "300", true, tp).build());
+            assertEquals(ActionStatusType.ERROR, normal.error(rep).statusType());
 
             // When it is processed, an error cannot do it. [ValidationException]
-            CashInOut today = rep.save(DataFixtures.cio("2", accId, "300", true, tp));
-            today.setEventDay(LocalDate.of(2014, 11, 18));
-            today.setStatusType(ActionStatusType.PROCESSED);
+            CashInOut today = rep.save(DataFixtures.cio("2", accId, "300", true, tp)
+                    .eventDay(LocalDate.of(2014, 11, 18))
+                    .statusType(ActionStatusType.PROCESSED)
+                    .build());
             rep.save(today);
             try {
                 today.error(rep);
                 fail();
             } catch (ValidationException e) {
-                assertEquals(DomainErrorKeys.STATUS_PROCESSING, e.getMessage());
+                assertEquals(DomainErrorKeys.STATUS_PROCESSING, e.warns().fieldError("statusType").get().message());
             }
         });
     }
@@ -179,7 +184,7 @@ public class CashInOutTest {
         tester.tx(rep -> {
             TimePoint tp = rep.dh().time().tp();
             // It is handled non-arrival on an event day [ValidationException]
-            CashInOut future = rep.save(DataFixtures.cio("1", accId, "300", true, tp));
+            CashInOut future = rep.save(DataFixtures.cio("1", accId, "300", true, tp).build());
             try {
                 future.process(rep);
                 fail();
@@ -188,23 +193,24 @@ public class CashInOutTest {
             }
 
             // Event day arrival processing.
-            CashInOut normal = DataFixtures.cio("2", accId, "300", true, tp);
-            normal.setEventDay(LocalDate.of(2014, 11, 18));
+            CashInOut normal = DataFixtures.cio("2", accId, "300", true, tp)
+                    .eventDay(LocalDate.of(2014, 11, 18))
+                    .build();
             rep.save(normal);
             CashInOut processed = normal.process(rep);
-            assertEquals(ActionStatusType.PROCESSED, processed.getStatusType());
-            assertNotNull(processed.getCashflowId());
+            assertEquals(ActionStatusType.PROCESSED, processed.statusType());
+            assertNotNull(processed.cashflowId());
 
             // Check the Cashflow that CashInOut produced.
-            Cashflow cf = Cashflow.load(rep, normal.getCashflowId());
-            assertEquals(accId, cf.getAccountId());
-            assertEquals(ccy, cf.getCurrency());
-            assertEquals(new BigDecimal("-300"), cf.getAmount());
-            assertEquals(CashflowType.CASH_OUT, cf.getCashflowType());
-            assertEquals(Remarks.CASH_OUT, cf.getRemark());
-            assertEquals(LocalDate.of(2014, 11, 18), cf.getEventDay());
-            assertEquals(LocalDate.of(2014, 11, 21), cf.getValueDay());
-            assertEquals(ActionStatusType.UNPROCESSED, cf.getStatusType());
+            Cashflow cf = Cashflow.load(rep, normal.cashflowId());
+            assertEquals(accId, cf.accountId());
+            assertEquals(ccy, cf.currency());
+            assertEquals(new BigDecimal("-300"), cf.amount().setScale(0));
+            assertEquals(CashflowType.CASH_OUT, cf.cashflowType());
+            assertEquals(Remarks.CASH_OUT, cf.remark());
+            assertEquals(LocalDate.of(2014, 11, 18), cf.eventDay());
+            assertEquals(LocalDate.of(2014, 11, 21), cf.valueDay());
+            assertEquals(ActionStatusType.UNPROCESSED, cf.statusType());
         });
     }
 

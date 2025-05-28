@@ -16,12 +16,12 @@ public record Asset(
         String id) {
 
     public boolean canWithdraw(final OrmRepository rep, String currency, BigDecimal absAmount, LocalDate valueDay) {
-        var calc = Calculator.init(CashBalance.getOrNew(rep, id, currency).getAmount());
+        var calc = Calculator.init(CashBalance.getOrNew(rep, id, currency).amount());
         Cashflow.findUnrealize(rep, id, currency, valueDay).stream()
-                .map(Cashflow::getAmount)
+                .map(Cashflow::amount)
                 .forEach(calc::add);
         CashInOut.findUnprocessed(rep, id, currency, true).stream()
-                .map(v -> v.getAbsAmount().negate())
+                .map(v -> v.absAmount().negate())
                 .forEach(calc::add);
         calc.add(absAmount.negate());
         return 0 <= calc.decimal().signum();

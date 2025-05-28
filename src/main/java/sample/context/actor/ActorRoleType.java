@@ -6,22 +6,22 @@ package sample.context.actor;
 public enum ActorRoleType {
     /**
      * Anonymous user.
-     * (the actor who does not have specific information such as the ID)
+     * (the actor who does not have specific information such as an ID)
      */
     ANONYMOUS,
     /**
      * User.
-     * (mainly customer of BtoC, staff of BtoB)
+     * (mainly customers in BtoC, staff in BtoB)
      */
     USER,
     /**
      * Internal User.
-     * (mainly staff of BtoC, staff manager of BtoB)
+     * (mainly staff in BtoC, staff managers in BtoB)
      */
     INTERNAL,
     /**
      * System Administrator.
-     * (an IT system charge staff or staff of the system management company)
+     * (IT system staff or staff of the system management company)
      */
     ADMINISTRATOR,
     /**
