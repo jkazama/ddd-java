@@ -4,7 +4,8 @@ ddd-java
 ### Preface
 
 This is a DDD sample implementation using [Spring Boot](http://projects.spring.io/spring-boot/).  
-It is not a framework, but a simple example of implementation based on Evans's DDD. This approach is straightforward and based on Evans's book, rather than verbose approaches like Clean Architecture or Hexagonal Architecture.
+It is not a framework, but a simple example of implementation based on Evans's DDD.  
+This approach is straightforward and based on Evans's book, rather than verbose approaches like Clean Architecture or Hexagonal Architecture.
 
 #### Concept of Layering
 
