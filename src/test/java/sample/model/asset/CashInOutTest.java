@@ -49,7 +49,6 @@ public class CashInOutTest {
     public void before() {
         tester = DomainTester.create(jdbcTemplate, dataSource);
         tester.txInitializeData(rep -> {
-            rep.save(DataFixtures.selfFiAcc(rep.dh(), Remarks.CASH_OUT, ccy).build());
             rep.save(DataFixtures.acc(accId).build());
             rep.save(DataFixtures.fiAcc(rep.dh(), accId, Remarks.CASH_OUT, ccy).build());
             rep.save(DataFixtures.cb(rep.dh(), accId, baseDay, ccy, "1000").build());
