@@ -205,6 +205,7 @@ public class OrmTemplate {
      * @param pageable     Pagination information
      * @return Page of entities
      */
+    @SuppressWarnings("removal")
     public <T> Page<T> find(Class<T> clazz, String propertyName, Object value, Pageable pageable) {
         if (value == null) {
             return template.findAll(clazz, pageable);
@@ -227,6 +228,7 @@ public class OrmTemplate {
      * @param pageable   Pagination information
      * @return Page of entities
      */
+    @SuppressWarnings("removal")
     public <T> Page<T> find(Class<T> clazz, Map<String, Object> conditions, Pageable pageable) {
         if (conditions == null || conditions.isEmpty()) {
             return template.findAll(clazz, pageable);
@@ -258,6 +260,7 @@ public class OrmTemplate {
      * @param pageable Pagination information
      * @return Page of entities
      */
+    @SuppressWarnings("removal")
     public <T> Page<T> findAll(Class<T> clazz, Pageable pageable) {
         return template.findAll(clazz, pageable);
     }

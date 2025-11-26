@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.util.StringUtils;
 
 /**
@@ -20,55 +20,50 @@ import org.springframework.util.StringUtils;
  * This is the SQL equivalent of JpqlBuilder, providing similar functionality
  * for building dynamic SQL queries with named parameters.
  */
-public final class SqlBuilder {
+public class SqlBuilder {
+
     private final StringBuilder sql;
-    private final AtomicInteger index;
     private final List<String> conditions = new ArrayList<>();
-    private final Map<String, Object> parameters = new HashMap<>();
+    private final Map<String, Object> reservedParams = new HashMap<>();
+    private final Map<String, Object> params = new HashMap<>();
     private Optional<String> groupBy = Optional.empty();
     private Optional<String> orderBy = Optional.empty();
 
-    public SqlBuilder(String baseSql, int fromIndex) {
+    public SqlBuilder(String baseSql) {
         this.sql = new StringBuilder(baseSql);
-        this.index = new AtomicInteger(fromIndex);
     }
 
-    public SqlBuilder(String baseSql, String staticCondition, int fromIndex) {
-        this(baseSql, fromIndex);
-        add(staticCondition);
-    }
-
-    public SqlBuilder condition(String condition, Object... values) {
+    /**
+     * Adds a condition clause.
+     */
+    public SqlBuilder condition(String condition, Map<String, Object> params) {
         if (StringUtils.hasText(condition)) {
-            int count = StringUtils.countOccurrencesOf(condition, "?");
-            String[] paramNames = new String[count];
-            for (int i = 0; i < count; i++) {
-                String paramName = "param" + index.getAndIncrement();
-                paramNames[i] = paramName;
-                if (values != null && i < values.length) {
-                    parameters.put(paramName, values[i]);
-                }
+            conditions.add(condition);
+            if (params != null && !params.isEmpty()) {
+                this.params.putAll(params);
             }
-            String c = condition.replace("?", ":%s");
-            conditions.add(String.format(c, (Object[]) paramNames));
         }
         return this;
     }
 
-    private SqlBuilder add(String condition) {
-        if (StringUtils.hasText(condition)) {
-            this.conditions.add(condition);
-        }
-        return this;
-    }
-
-    /** Adds an equality condition. (Ignored when value is null) */
+    /** Adds an equality condition. (ignored if value is null) */
     public SqlBuilder equal(String field, Object value) {
         return ifValid(value, () -> {
-            String paramName = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s = :%s", field, paramName));
-            parameters.put(paramName, value);
+            conditions.add(String.format("%s = :%s", field, field));
+            params.put(field, convertValue(value));
         });
+    }
+
+    private Object convertValue(Object value) {
+        if (value instanceof Enum) {
+            return ((Enum<?>) value).name();
+        } else if (value instanceof Collection) {
+            // Convert Enum elements within the Collection as well
+            return ((Collection<?>) value).stream()
+                    .map(item -> item instanceof Enum ? ((Enum<?>) item).name() : item)
+                    .toList();
+        }
+        return value;
     }
 
     private SqlBuilder ifValid(Object value, Runnable command) {
@@ -92,61 +87,60 @@ public final class SqlBuilder {
         }
     }
 
-    /** Adds an inequality condition. (Ignored when value is null) */
+    /** Adds an inequality condition. (ignored if value is null) */
     public SqlBuilder equalNot(String field, Object value) {
         return ifValid(value, () -> {
-            String paramName = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s != :%s", field, paramName));
-            parameters.put(paramName, value);
+            conditions.add(String.format("%s != :%s", field, field));
+            params.put(field, convertValue(value));
         });
     }
 
-    /** Adds a like condition. (Ignored when value is null) */
-    public SqlBuilder like(String field, String value, MatchMode mode) {
+    /** Adds a LIKE condition. (ignored if value is null) */
+    public SqlBuilder like(String field, String value, SqlMatchMode mode) {
         return ifValid(value, () -> {
-            String paramName = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s LIKE :%s", field, paramName));
-            parameters.put(paramName, mode.parse(value));
+            conditions.add(String.format("%s LIKE :%s", field, field));
+            params.put(field, mode.toMatchString(value));
         });
     }
 
     /**
-     * Adds a like condition. [OR combination for multiple fields] (Ignored when
-     * value is null)
+     * Adds a LIKE condition with OR join on multiple fields. (ignored if value is
+     * null)
      */
-    public SqlBuilder like(List<String> fields, String value, MatchMode mode) {
+    public SqlBuilder like(List<String> fields, String value, SqlMatchMode mode) {
         return ifValid(value, () -> {
             StringBuilder condition = new StringBuilder("(");
             for (String field : fields) {
                 if (condition.length() != 1) {
                     condition.append(" OR ");
                 }
-                String paramName = "param" + index.getAndIncrement();
-                condition.append(String.format("(%s LIKE :%s)", field, paramName));
-                parameters.put(paramName, mode.parse(value));
+                condition.append(String.format("(%s LIKE :%s)", field, field));
+                params.put(field, mode.toMatchString(value));
             }
             condition.append(")");
             conditions.add(condition.toString());
         });
     }
 
-    /** Adds an in condition. */
+    /** Adds an IN condition. */
     public SqlBuilder in(String field, Collection<?> values) {
         return ifValid(values, () -> {
-            String paramName = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s IN (:%s)", field, paramName));
-            parameters.put(paramName, values);
+            // Convert Enum elements within the Collection to Enum names
+            Collection<?> convertedValues = values.stream()
+                    .map(item -> item instanceof Enum ? ((Enum<?>) item).name() : item)
+                    .toList();
+            conditions.add(String.format("%s IN (:%s)", field, field));
+            params.put(field, convertedValues);
         });
     }
 
-    /** Adds a between condition. */
+    /** Adds a BETWEEN condition. */
     public SqlBuilder between(String field, Date from, Date to) {
         if (from != null && to != null) {
-            String paramNameFrom = "param" + index.getAndIncrement();
-            String paramNameTo = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s BETWEEN :%s AND :%s", field, paramNameFrom, paramNameTo));
-            parameters.put(paramNameFrom, from);
-            parameters.put(paramNameTo, to);
+            conditions.add(String.format(
+                    "%s BETWEEN :%s AND :%s", field, field + "_from", field + "_to"));
+            params.put(field + "_from", from);
+            params.put(field + "_to", to);
         } else if (from != null) {
             gte(field, from);
         } else if (to != null) {
@@ -155,14 +149,13 @@ public final class SqlBuilder {
         return this;
     }
 
-    /** Adds a between condition. */
+    /** Adds a BETWEEN condition. */
     public SqlBuilder between(String field, LocalDate from, LocalDate to) {
         if (from != null && to != null) {
-            String paramNameFrom = "param" + index.getAndIncrement();
-            String paramNameTo = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s BETWEEN :%s AND :%s", field, paramNameFrom, paramNameTo));
-            parameters.put(paramNameFrom, from);
-            parameters.put(paramNameTo, to);
+            conditions.add(String.format(
+                    "%s BETWEEN :%s AND :%s", field, field + "_from", field + "_to"));
+            params.put(field + "_from", from);
+            params.put(field + "_to", to);
         } else if (from != null) {
             gte(field, from);
         } else if (to != null) {
@@ -171,14 +164,13 @@ public final class SqlBuilder {
         return this;
     }
 
-    /** Adds a between condition. */
+    /** Adds a BETWEEN condition. */
     public SqlBuilder between(String field, Number from, Number to) {
         if (from != null && to != null) {
-            String paramNameFrom = "param" + index.getAndIncrement();
-            String paramNameTo = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s BETWEEN :%s AND :%s", field, paramNameFrom, paramNameTo));
-            parameters.put(paramNameFrom, from);
-            parameters.put(paramNameTo, to);
+            conditions.add(String.format(
+                    "%s BETWEEN :%s AND :%s", field, field + "_from", field + "_to"));
+            params.put(field + "_from", from);
+            params.put(field + "_to", to);
         } else if (from != null) {
             gte(field, from);
         } else if (to != null) {
@@ -187,14 +179,13 @@ public final class SqlBuilder {
         return this;
     }
 
-    /** Adds a between condition. */
+    /** Adds a BETWEEN condition. */
     public SqlBuilder between(String field, LocalDateTime from, LocalDateTime to) {
         if (from != null && to != null) {
-            String paramNameFrom = "param" + index.getAndIncrement();
-            String paramNameTo = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s BETWEEN :%s AND :%s", field, paramNameFrom, paramNameTo));
-            parameters.put(paramNameFrom, from);
-            parameters.put(paramNameTo, to);
+            conditions.add(String.format(
+                    "%s BETWEEN :%s AND :%s", field, field + "_from", field + "_to"));
+            params.put(field + "_from", from);
+            params.put(field + "_to", to);
         } else if (from != null) {
             gte(field, from);
         } else if (to != null) {
@@ -203,14 +194,13 @@ public final class SqlBuilder {
         return this;
     }
 
-    /** Adds a between condition. */
+    /** Adds a BETWEEN condition. */
     public SqlBuilder between(String field, String from, String to) {
         if (isValid(from) && isValid(to)) {
-            String paramNameFrom = "param" + index.getAndIncrement();
-            String paramNameTo = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s BETWEEN :%s AND :%s", field, paramNameFrom, paramNameTo));
-            parameters.put(paramNameFrom, from);
-            parameters.put(paramNameTo, to);
+            conditions.add(String.format(
+                    "%s BETWEEN :%s AND :%s", field, field + "_from", field + "_to"));
+            params.put(field + "_from", from);
+            params.put(field + "_to", to);
         } else if (isValid(from)) {
             gte(field, from);
         } else if (isValid(to)) {
@@ -219,49 +209,45 @@ public final class SqlBuilder {
         return this;
     }
 
-    /** Adds a [field] >= [value] condition. (Ignored when value is null) */
+    /** Adds a [field] >= [value] condition. (ignored if value is null) */
     public <Y> SqlBuilder gte(String field, final Y value) {
         return ifValid(value, () -> {
-            String paramName = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s >= :%s", field, paramName));
-            parameters.put(paramName, value);
+            conditions.add(String.format("%s >= :%s", field, field));
+            params.put(field, convertValue(value));
         });
     }
 
-    /** Adds a [field] > [value] condition. (Ignored when value is null) */
+    /** Adds a [field] > [value] condition. (ignored if value is null) */
     public <Y> SqlBuilder gt(String field, final Y value) {
         return ifValid(value, () -> {
-            String paramName = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s > :%s", field, paramName));
-            parameters.put(paramName, value);
+            conditions.add(String.format("%s > :%s", field, field));
+            params.put(field, convertValue(value));
         });
     }
 
     /** Adds a [field] <= [value] condition. */
     public <Y> SqlBuilder lte(String field, final Y value) {
         return ifValid(value, () -> {
-            String paramName = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s <= :%s", field, paramName));
-            parameters.put(paramName, value);
+            conditions.add(String.format("%s <= :%s", field, field));
+            params.put(field, convertValue(value));
         });
     }
 
     /** Adds a [field] < [value] condition. */
     public <Y> SqlBuilder lt(String field, final Y value) {
         return ifValid(value, () -> {
-            String paramName = "param" + index.getAndIncrement();
-            conditions.add(String.format("%s < :%s", field, paramName));
-            parameters.put(paramName, value);
+            conditions.add(String.format("%s < :%s", field, field));
+            params.put(field, convertValue(value));
         });
     }
 
-    /** Adds a group by clause. */
+    /** Adds a GROUP BY clause. */
     public SqlBuilder groupBy(String groupBy) {
         this.groupBy = Optional.ofNullable(groupBy);
         return this;
     }
 
-    /** Adds an order by clause. */
+    /** Adds an ORDER BY clause. */
     public SqlBuilder orderBy(String orderBy) {
         this.orderBy = Optional.ofNullable(orderBy);
         return this;
@@ -269,102 +255,103 @@ public final class SqlBuilder {
 
     /** Generates SQL. */
     public String build() {
-        StringBuilder sql = new StringBuilder(this.sql.toString());
+        StringBuilder builder = new StringBuilder(this.sql.toString());
         if (!conditions.isEmpty()) {
-            sql.append(" WHERE ");
+            builder.append(" WHERE ");
             AtomicBoolean first = new AtomicBoolean(true);
             conditions.forEach(condition -> {
                 if (!first.getAndSet(false)) {
-                    sql.append(" AND ");
+                    builder.append(" AND ");
                 }
-                sql.append(condition);
+                builder.append(condition);
             });
         }
-        groupBy.ifPresent(v -> sql.append(" GROUP BY " + v));
-        orderBy.ifPresent(v -> sql.append(" ORDER BY " + v));
-        return sql.toString();
+        groupBy.ifPresent(v -> builder.append(" GROUP BY " + v));
+        orderBy.ifPresent(v -> builder.append(" ORDER BY " + v));
+        return builder.toString();
     }
 
-    /** Returns the parameters associated with SQL. */
-    public Map<String, Object> parameters() {
-        return new HashMap<>(this.parameters);
+    /** Generates SQL with pagination. */
+    public String build(PageRequest pageRequest) {
+        StringBuilder builder = new StringBuilder(this.sql.toString());
+        if (!conditions.isEmpty()) {
+            builder.append(" WHERE ");
+            AtomicBoolean first = new AtomicBoolean(true);
+            conditions.forEach(condition -> {
+                if (!first.getAndSet(false)) {
+                    builder.append(" AND ");
+                }
+                builder.append(condition);
+            });
+        }
+        groupBy.ifPresent(v -> builder.append(" GROUP BY " + v));
+        orderBy.ifPresent(v -> builder.append(" ORDER BY " + v));
+        if (pageRequest != null) {
+            builder.append(" LIMIT " + pageRequest.getPageSize() + " OFFSET "
+                    + (long) pageRequest.getPageSize() * pageRequest.getPageNumber());
+        }
+        return builder.toString();
+    }
+
+    /** Generates SQL for count. */
+    public String buildCount() {
+        StringBuilder builder = new StringBuilder("SELECT COUNT(*) FROM (");
+        builder.append(this.sql.toString());
+        if (!conditions.isEmpty()) {
+            builder.append(" WHERE ");
+            AtomicBoolean first = new AtomicBoolean(true);
+            conditions.forEach(condition -> {
+                if (!first.getAndSet(false)) {
+                    builder.append(" AND ");
+                }
+                builder.append(condition);
+            });
+        }
+        builder.append(") AS count");
+        return builder.toString();
+    }
+
+    /** Returns parameter values bound to the SQL. */
+    public Map<String, Object> params() {
+        Map<String, Object> result = new HashMap<>();
+        result.putAll(this.reservedParams);
+        result.putAll(this.params);
+        return result;
     }
 
     /**
      * Creates a builder.
      *
-     * @param baseSql Base SQL (does not include where / order by)
+     * @param baseSql Base SQL (should not include where / order by)
      * @return Builder information
      */
     public static SqlBuilder of(String baseSql) {
-        return new SqlBuilder(baseSql, 1);
+        return new SqlBuilder(baseSql);
     }
 
     /**
      * Creates a builder.
      *
-     * @param baseSql   Base SQL (does not include where / order by)
-     * @param fromIndex Starting index for dynamically added condition clauses
-     * @return Builder information
-     */
-    public static SqlBuilder of(String baseSql, int fromIndex) {
-        return new SqlBuilder(baseSql, fromIndex);
-    }
-
-    /**
-     * Creates a builder.
-     *
-     * @param baseSql         Base SQL (does not include where / order by)
-     * @param staticCondition Where condition clause that is fixed without condition
-     *                        specification (field is null, etc.)
+     * @param baseSql         Base SQL (should not include where / order by)
+     * @param staticCondition WHERE clause determined without condition
+     *                        specification (e.g., field is null)
      * @return Builder information
      */
     public static SqlBuilder of(String baseSql, String staticCondition) {
-        return new SqlBuilder(baseSql, staticCondition, 1);
+        return of(baseSql).condition(staticCondition, Map.of());
     }
 
     /**
      * Creates a builder.
      *
-     * @param baseSql         Base SQL (does not include where / order by)
-     * @param staticCondition Where condition clause that is fixed without condition
-     *                        specification (field is null, etc.)
-     * @param fromIndex       Starting index for dynamically added condition clauses
+     * @param baseSql         Base SQL (should not include where / order by)
+     * @param staticCondition WHERE clause determined without condition
+     *                        specification (e.g., field is null)
+     * @param params          Parameter information bound to the base SQL
      * @return Builder information
      */
-    public static SqlBuilder of(String baseSql, String staticCondition, int fromIndex) {
-        return new SqlBuilder(baseSql, staticCondition, fromIndex);
+    public static SqlBuilder of(String baseSql, String staticCondition, Map<String, Object> params) {
+        return of(baseSql).condition(staticCondition, params);
     }
 
-    /**
-     * Match mode for LIKE operations.
-     */
-    public enum MatchMode {
-        EXACT {
-            @Override
-            public String parse(String value) {
-                return value;
-            }
-        },
-        START {
-            @Override
-            public String parse(String value) {
-                return value + "%";
-            }
-        },
-        END {
-            @Override
-            public String parse(String value) {
-                return "%" + value;
-            }
-        },
-        ANYWHERE {
-            @Override
-            public String parse(String value) {
-                return "%" + value + "%";
-            }
-        };
-
-        public abstract String parse(String value);
-    }
 }

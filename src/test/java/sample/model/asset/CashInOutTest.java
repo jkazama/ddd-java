@@ -15,7 +15,7 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
+import org.springframework.boot.data.jdbc.test.autoconfigure.DataJdbcTest;
 import org.springframework.data.jdbc.core.JdbcAggregateTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -168,12 +168,11 @@ public class CashInOutTest {
                     .eventDay(LocalDate.of(2014, 11, 18))
                     .statusType(ActionStatusType.PROCESSED)
                     .build());
-            rep.save(today);
             try {
                 today.error(rep);
                 fail();
             } catch (ValidationException e) {
-                assertEquals(DomainErrorKeys.STATUS_PROCESSING, e.warns().fieldError("statusType").get().message());
+                assertEquals(DomainErrorKeys.STATUS_PROCESSING, e.getMessage());
             }
         });
     }
@@ -192,13 +191,12 @@ public class CashInOutTest {
             }
 
             // Event day arrival processing.
-            CashInOut normal = DataFixtures.cio("2", accId, "300", true, tp)
+            CashInOut normal = rep.save(DataFixtures.cio("2", accId, "300", true, tp)
                     .eventDay(LocalDate.of(2014, 11, 18))
-                    .build();
-            rep.save(normal);
-            CashInOut processed = normal.process(rep);
-            assertEquals(ActionStatusType.PROCESSED, processed.statusType());
-            assertNotNull(processed.cashflowId());
+                    .build());
+            normal = normal.process(rep);
+            assertEquals(ActionStatusType.PROCESSED, normal.statusType());
+            assertNotNull(normal.cashflowId());
 
             // Check the Cashflow that CashInOut produced.
             Cashflow cf = Cashflow.load(rep, normal.cashflowId());

@@ -11,7 +11,7 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
+import org.springframework.boot.data.jdbc.test.autoconfigure.DataJdbcTest;
 import org.springframework.data.jdbc.core.JdbcAggregateTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -74,7 +74,8 @@ public class CashflowTest {
             // Balance reflection inspection of the cashflow. 0 + 1000 = 1000
             var cfNormal = rep.save(DataFixtures.cf(rep.dh(), "test1", "1000", LocalDate.of(2014, 11, 17),
                     LocalDate.of(2014, 11, 18)).build());
-            assertEquals(ActionStatusType.PROCESSED, cfNormal.realize(rep).statusType());
+            cfNormal = cfNormal.realize(rep);
+            assertEquals(ActionStatusType.PROCESSED, cfNormal.statusType());
             assertEquals(new BigDecimal("1000"), CashBalance.getOrNew(rep, "test1", "JPY").amount().setScale(0));
 
             // Re-realization of the treated cashflow. [ValidationException]
